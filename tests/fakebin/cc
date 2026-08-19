@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# fake cc/gcc for tests: preflight's C compiler probe only needs a file it
+# can find in PATH; the compiler is never executed by the check.
+exit 0

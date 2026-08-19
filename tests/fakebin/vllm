@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+# fake-vllm - test double for the vLLM API server (tests only; issues 03/04).
+#
+# The tests copy this file into the fake venv as $prefix/venv/bin/vllm, where
+# serve.sh / fullcontext.sh look for it. It logs the exact argv + offline env
+# vars it was launched with (so tests can assert the fixed vLLM settings),
+# prints vLLM-style boot lines, then serves a minimal OpenAI-compatible API
+# (/v1/models, /v1/chat/completions) using the REAL python3 interpreter
+# (the fake venv python is a bash stub; the interpreter is passed via
+# FAKE_VLLM_REALPY). Never used on real hardware.
+#
+# Logging: FAKE_VLLM_LOG points at a single log file (issue 03 style). When
+# FAKE_VLLM_LOG_DIR is set instead, one log per boot is written as
+# $FAKE_VLLM_LOG_DIR/argv-<port>.log - fullcontext (issue 04) boots several
+# vLLM instances in sequence, and the per-port files let tests assert each
+# boot's argv independently.
+#
+# Issue 04 switches (all read from the environment):
+#   FAKE_VLLM_BOOT_FAIL=1     - exit 1 immediately instead of serving (boot
+#                               failures at a ramp step)
+#   FAKE_VLLM_FAIL_BOOT_AT=N  - exit 1 only when --max-model-len equals N
+#                               (smoke passes, a later ramp step fails)
+#   FAKE_VLLM_MAX_LEN_OFFSET  - report max_model_len + N in /v1/models (the
+#                               verification must reject a wrong effective
+#                               context)
+#   FAKE_VLLM_NO_REJECT=1     - answer 200 to over-limit prompts instead of
+#                               400 (the boundary probe must fail)
+set -u
+
+REALPY="${FAKE_VLLM_REALPY:-python3}"
+host="127.0.0.1"
+port="8000"
+model=""
+name=""
+max_len=""
+
+# The argv record below must see the ORIGINAL launch arguments, but the
+# parsing loop consumes $@ via shift; save a copy up front.
+ORIG_ARGS=("$@")
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host="${2:-}"; shift 2 ;;
+    --port) port="${2:-}"; shift 2 ;;
+    --model) model="${2:-}"; shift 2 ;;
+    --served-model-name) name="${2:-}"; shift 2 ;;
+    --max-model-len) max_len="${2:-}"; shift 2 ;;
+    --gpu-memory-utilization) shift 2 ;;
+    *) shift ;;
+  esac
+done
+[ -n "$name" ] || name="$model"
+
+if [ -n "${FAKE_VLLM_LOG_DIR:-}" ]; then
+  LOG="$FAKE_VLLM_LOG_DIR/argv-${port}.log"
+else
+  LOG="${FAKE_VLLM_LOG:-/tmp/fake-vllm.log}"
+fi
+mkdir -p "$(dirname "$LOG")" 2>/dev/null || true
+
+# Overwrite (not append) per-port argv logs: the full-context validation
+# (issue 04) boots several instances on the same port in sequence, and the
+# stop/start boundary can overlap under Git Bash (the fake execs a native
+# python whose lifetime the bash PID no longer tracks). Overwriting keeps the
+# file as the LAST instance's complete argv instead of interleaving fragments
+# from overlapping boots. Each line is written by a SEPARATE external printf
+# process: a block-redirect buffered in the bash process would be lost when
+# this shell execs the python server right after (bash flushes userspace
+# stdout buffers only on exit, not on exec). ORIG_ARGS holds the untouched
+# launch arguments.
+{
+  env printf 'argv-start\n'
+  for a in "${ORIG_ARGS[@]}"; do env printf 'argv %s\n' "$a"; done
+  env printf 'argv-line'
+  for a in "${ORIG_ARGS[@]}"; do env printf ' %q' "$a"; done
+  env printf '\n'
+  env printf 'argv-end\n'
+  env printf 'HF_HUB_OFFLINE=%s\n' "${HF_HUB_OFFLINE:-<unset>}"
+  env printf 'TRANSFORMERS_OFFLINE=%s\n' "${TRANSFORMERS_OFFLINE:-<unset>}"
+} > "$LOG" 2>&1
+
+# The embedded python may be a native Windows interpreter (Git Bash tests):
+# translate an MSYS /tmp path to a Windows path so it can open the log.
+LOG_WIN="$(command -v cygpath >/dev/null 2>&1 && cygpath -w "$LOG" 2>/dev/null || printf '%s\n' "$LOG")"
+
+# Boot failure test switches (issue 04): mimic a boot that crashes. Either
+# every boot fails (FAKE_VLLM_BOOT_FAIL=1) or only the boot whose
+# --max-model-len equals FAKE_VLLM_FAIL_BOOT_AT does.
+if [ "${FAKE_VLLM_BOOT_FAIL:-0}" = "1" ]; then
+  echo "ERROR 01-01 00:00:00 engine.py:1] FAKE: engine failed to initialize (test boot failure)" >&2
+  exit 1
+fi
+if [ -n "${FAKE_VLLM_FAIL_BOOT_AT:-}" ] && [ "$max_len" = "$FAKE_VLLM_FAIL_BOOT_AT" ]; then
+  echo "ERROR 01-01 00:00:00 engine.py:1] FAKE: engine failed to initialize at max-model-len=$max_len (test boot failure)" >&2
+  exit 1
+fi
+
+# Mimic vLLM boot lines so the serve.sh / fullcontext.sh output looks like a
+# real launch.
+echo "INFO 01-01 00:00:00 engine.py:100] Initializing an LLM engine (vllm ${FAKE_VLLM_VERSION:-0.27.1})"
+echo "INFO 01-01 00:00:00 engine.py:100] Loaded model '$model' (quantization: modelopt, kv-cache-dtype: fp8)"
+echo "INFO 01-01 00:00:00 server.py:200] Uvicorn running on http://$host:$port"
+echo "INFO 01-01 00:00:00 server.py:200] Application startup complete."
+
+FAKE_SERVER_HOST="$host" FAKE_SERVER_PORT="$port" FAKE_SERVER_MODEL="$name" \
+FAKE_SERVER_MAX_LEN="${max_len:-8192}" FAKE_SERVER_MAX_LEN_OFFSET="${FAKE_VLLM_MAX_LEN_OFFSET:-0}" \
+FAKE_SERVER_NO_REJECT="${FAKE_VLLM_NO_REJECT:-0}" \
+FAKE_SERVER_LOG="$LOG_WIN" exec "$REALPY" - <<'PY'
+import http.server
+import json
+import os
+
+host = os.environ.get("FAKE_SERVER_HOST", "127.0.0.1")
+port = int(os.environ.get("FAKE_SERVER_PORT", "8000"))
+model = os.environ.get("FAKE_SERVER_MODEL", "fake-model")
+log = os.environ.get("FAKE_SERVER_LOG", "/tmp/fake-vllm.log")
+max_len = int(os.environ.get("FAKE_SERVER_MAX_LEN", "8192"))
+max_len_offset = int(os.environ.get("FAKE_SERVER_MAX_LEN_OFFSET", "0"))
+no_reject = os.environ.get("FAKE_SERVER_NO_REJECT", "0") == "1"
+max_len += max_len_offset
+
+
+def reply(handler, code, payload):
+    body = json.dumps(payload).encode("utf-8")
+    handler.send_response(code)
+    handler.send_header("Content-Type", "application/json")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path.rstrip("/") == "/v1/models":
+            reply(self, 200, {
+                "object": "list",
+                "data": [{
+                    "id": model,
+                    "object": "model",
+                    "created": 0,
+                    "owned_by": "vllm",
+                    "max_model_len": max_len,
+                }],
+            })
+        else:
+            reply(self, 404, {"error": "not found", "path": self.path})
+
+    def do_POST(self):
+        if self.path.rstrip("/") == "/v1/chat/completions":
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            try:
+                req = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                req = {}
+            messages = req.get("messages", [])
+            content = messages[-1].get("content", "") if messages else ""
+            if not no_reject and len(content) > max_len * 4:
+                reply(self, 400, {"error": {
+                    "message": "maximum context length exceeded (fake: %d > %d tokens)",
+                    "type": "invalid_request_error",
+                }})
+                return
+            reply(self, 200, {
+                "id": "fake-0",
+                "object": "chat.completion",
+                "created": 0,
+                "model": model,
+                "choices": [{
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "offline reply to: " + str(content)},
+                    "finish_reason": "stop",
+                }],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 2, "total_tokens": 3},
+            })
+        else:
+            reply(self, 404, {"error": "not found", "path": self.path})
+
+    def log_message(self, *args):
+        pass
+
+
+server = http.server.ThreadingHTTPServer((host, port), Handler)
+with open(log, "a") as f:
+    f.write("server-listening %s:%s model=%s max_len=%s\n" % (host, port, model, max_len))
+print("FAKE-VLLM-READY %s:%s" % (host, port), flush=True)
+server.serve_forever()
+PY

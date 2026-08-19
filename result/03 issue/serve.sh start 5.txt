@@ -1,0 +1,513 @@
+(EngineCore pid=1740) INFO 08-19 12:13:44 [weight_utils.py:867] Filesystem type for checkpoints: EXT4. Checkpoint size: 19.18 GiB. Available RAM: 19.11 GiB.
+(EngineCore pid=1740) INFO 08-19 12:13:44 [weight_utils.py:897] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (19.18 GiB) exceeds 90% of available RAM (19.11 GiB).
+Loading safetensors checkpoint shards:   0% Completed | 0/3 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  33% Completed | 1/3 [00:04<00:08,  4.33s/it]
+Loading safetensors checkpoint shards:  67% Completed | 2/3 [00:09<00:04,  4.91s/it]
+Loading safetensors checkpoint shards: 100% Completed | 3/3 [00:09<00:00,  3.24s/it]
+(EngineCore pid=1740)
+(EngineCore pid=1740) INFO 08-19 12:13:54 [default_loader.py:430] Loading weights took 9.72 seconds
+(EngineCore pid=1740) WARNING 08-19 12:13:54 [kv_cache.py:134] Checkpoint does not provide a q scaling factor. Setting it to k_scale. This only matters for FP8 Attention backends (flash-attn or flashinfer).
+(EngineCore pid=1740) WARNING 08-19 12:13:54 [kv_cache.py:151] Using KV cache scaling factor 1.0 for fp8_e4m3. If this is unintended, verify that k/v_scale scaling factors are properly set in the checkpoint.
+(EngineCore pid=1740) WARNING 08-19 12:13:54 [kv_cache.py:190] Using uncalibrated q_scale 1.0 and/or prob_scale 1.0 with fp8 attention. This may cause accuracy issues. Please make sure q/prob scaling factors are available in the fp8 checkpoint.
+(EngineCore pid=1740) INFO 08-19 12:13:55 [gpu_model_runner.py:5405] Model loading took 18.77 GiB memory and 11.370609 seconds
+(EngineCore pid=1740) INFO 08-19 12:13:55 [interface.py:911] Setting attention block size to 1568 tokens to ensure that attention page size is >= mamba page size.
+(EngineCore pid=1740) INFO 08-19 12:13:55 [interface.py:935] Padding mamba page size by 0.13% to ensure that mamba page size and attention page size are exactly equal.
+(EngineCore pid=1740) INFO 08-19 12:13:55 [gpu_model_runner.py:6465] Encoder cache will be initialized with a budget of 16384 tokens, and profiled with 1 image items of the maximum feature size.
+(EngineCore pid=1740) INFO 08-19 12:14:14 [backends.py:1094] Using cache directory: /home/kami/.cache/vllm/torch_compile_cache/7c2b970c82/rank_0_0/backbone for vLLM's torch.compile
+(EngineCore pid=1740) INFO 08-19 12:14:14 [backends.py:1155] Dynamo bytecode transform time: 17.56 s
+(EngineCore pid=1740) INFO 08-19 12:14:50 [backends.py:393] Compiling a graph for compile range (1, 2048) takes 35.36 s
+(EngineCore pid=1740) INFO 08-19 12:14:54 [backends.py:920] collected artifacts: 65 entries, 21 artifacts, 72855585 bytes total
+(EngineCore pid=1740) INFO 08-19 12:14:54 [decorators.py:708] saved AOT compiled function to /home/kami/.cache/vllm/torch_compile_cache/torch_aot_compile/5b5ed49fa1a1f0683b22eca6fb777962745e73d9bf907d90dcf1f266332b3ca3/rank_0_0/model
+(EngineCore pid=1740) INFO 08-19 12:14:54 [monitor.py:53] torch.compile took 57.57 s in total
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349] EngineCore failed to start.
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349] Traceback (most recent call last):
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1318, in run_engine_core
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1074, in __init__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     super().__init__(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~~~~~~~~^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         vllm_config,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<3 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         internal_dp_balancing,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 143, in __init__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 293, in _initialize_kv_caches
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     available_gpu_memory = self.model_executor.determine_available_memory()
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/executor/abstract.py", line 147, in determine_available_memory
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.collective_rpc("determine_available_memory")
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/executor/uniproc_executor.py", line 92, in collective_rpc
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     result = run_method(self.driver_worker, method, args, kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/serial_utils.py", line 510, in run_method
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_worker.py", line 504, in determine_available_memory
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     self.model_runner.profile_run()
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6493, in profile_run
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     hidden_states, last_hidden_states = self._dummy_run(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                                         ~~~~~~~~~~~~~~~^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         self.max_num_tokens, is_profile=True
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6156, in _dummy_run
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     outputs = self.model(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         input_ids=input_ids,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<3 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         **model_kwargs,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/cuda_graph.py", line 254, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.runnable(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self._call_impl(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return forward_call(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/model_executor/models/qwen3_5.py", line 557, in forward
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     hidden_states = self.language_model.model(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         input_ids=input_ids,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<2 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         inputs_embeds=inputs_embeds,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/decorators.py", line 670, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     output = self.aot_compiled_fn(self, *args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/aot_compile.py", line 244, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/model_executor/models/qwen3_next.py", line 646, in forward
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     def forward(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/caching.py", line 217, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.optimized_call(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "<string>", line 277, in execution_fn
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/cuda_graph.py", line 254, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.runnable(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return range_entry.runnable(*args)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_inductor/standalone_compile.py", line 321, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.inner_fn(*args)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/aot_compile_types.py", line 221, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.compiled_fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/aot_autograd.py", line 1277, in forward
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return compiled_fn(full_args)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1141, in runtime_wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     result = _codegen_runtime_wrapper(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         _inner_compiled_fn,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<2 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         args,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/subclass_codegen.py:codegen(runtime_wrapper_orchestration)", line 8, in _runtime_wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 2548, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.compiled_fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_inductor/output_code.py", line 763, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self.current_callable(inputs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/.cache/vllm/torch_compile_cache/torch_aot_compile/5b5ed49fa1a1f0683b22eca6fb777962745e73d9bf907d90dcf1f266332b3ca3/inductor_cache/wt/cwtsmnbddttqq4xpstrj4sudtwklsxofvbfcrunwujcfuze3pv3z.py", line 575, in call
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     buf9 = torch.ops.vllm.flashinfer_mm_fp4.default(buf2, reinterpret_tensor(arg6_1, (2560, 16384), (1, 2560), 0), aten.view.dtype(buf8, torch.uint8), aten.view.dtype(reinterpret_tensor(arg5_1, (320, 16384), (1, 320), 0), torch.uint8), arg7_1, torch.bfloat16, False, 'cutlass')
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_ops.py", line 875, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self._op(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return disable_fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 432, in __torch_dispatch__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     res = func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_ops.py", line 875, in __call__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return self._op(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]            ~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 441, in backend_impl
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     result = self._backend_fns[device_type](*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return disable_fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 502, in wrapped_fn
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return fn(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/utils/flashinfer.py", line 584, in flashinfer_mm_fp4
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return flashinfer_mm_fp4_(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         A,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<8 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         backend=backend,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/utils.py", line 1421, in wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/api_logging.py", line 2333, in _auto_dump_wrapper
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return _inner(*args, **kwargs)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 6666, in mm_fp4
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     runners = [backend_to_runner_factory[cur_backend]() for cur_backend in backends]
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 6656, in <lambda>
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     "cutlass": lambda: get_cutlass_fp4_gemm_module(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         major, minor
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ).cutlass_fp4_gemm_runner(),
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 1588, in get_cutlass_fp4_gemm_module
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     return get_gemm_sm120_module_cutlass_fp4()
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 1572, in get_gemm_sm120_module_cutlass_fp4
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     module = gen_gemm_sm120_module_cutlass_fp4().build_and_load()
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/core.py", line 320, in build_and_load
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     self.build()
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~~^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/core.py", line 427, in build
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     run_ninja(self.build_dir, self.ninja_path, verbose)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/cpp_ext.py", line 370, in run_ninja
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     subprocess.run(
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~~~~~~^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         command,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<4 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         text=True,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]         ^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     )
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/usr/lib/python3.14/subprocess.py", line 555, in run
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     with Popen(*popenargs, **kwargs) as process:
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]          ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/usr/lib/python3.14/subprocess.py", line 1039, in __init__
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     self._execute_child(args, executable, preexec_fn, close_fds,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         pass_fds, cwd, env,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     ...<5 lines>...
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         gid, gids, uid, umask,
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         ^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         start_new_session, process_group)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]   File "/usr/lib/python3.14/subprocess.py", line 1990, in _execute_child
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349]     raise child_exception_type(errno_num, err_msg, err_filename)
+(EngineCore pid=1740) ERROR 08-19 12:14:55 [core.py:1349] FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+(EngineCore pid=1740) Process EngineCore:
+(EngineCore pid=1740) Traceback (most recent call last):
+(EngineCore pid=1740)   File "/usr/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+(EngineCore pid=1740)     self.run()
+(EngineCore pid=1740)     ~~~~~~~~^^
+(EngineCore pid=1740)   File "/usr/lib/python3.14/multiprocessing/process.py", line 108, in run
+(EngineCore pid=1740)     self._target(*self._args, **self._kwargs)
+(EngineCore pid=1740)     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1353, in run_engine_core
+(EngineCore pid=1740)     raise e
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1318, in run_engine_core
+(EngineCore pid=1740)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1074, in __init__
+(EngineCore pid=1740)     super().__init__(
+(EngineCore pid=1740)     ~~~~~~~~~~~~~~~~^
+(EngineCore pid=1740)         vllm_config,
+(EngineCore pid=1740)         ^^^^^^^^^^^^
+(EngineCore pid=1740)     ...<3 lines>...
+(EngineCore pid=1740)         internal_dp_balancing,
+(EngineCore pid=1740)         ^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)     ^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 143, in __init__
+(EngineCore pid=1740)     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 293, in _initialize_kv_caches
+(EngineCore pid=1740)     available_gpu_memory = self.model_executor.determine_available_memory()
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/executor/abstract.py", line 147, in determine_available_memory
+(EngineCore pid=1740)     return self.collective_rpc("determine_available_memory")
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/executor/uniproc_executor.py", line 92, in collective_rpc
+(EngineCore pid=1740)     result = run_method(self.driver_worker, method, args, kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/serial_utils.py", line 510, in run_method
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_worker.py", line 504, in determine_available_memory
+(EngineCore pid=1740)     self.model_runner.profile_run()
+(EngineCore pid=1740)     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6493, in profile_run
+(EngineCore pid=1740)     hidden_states, last_hidden_states = self._dummy_run(
+(EngineCore pid=1740)                                         ~~~~~~~~~~~~~~~^
+(EngineCore pid=1740)         self.max_num_tokens, is_profile=True
+(EngineCore pid=1740)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)     ^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6156, in _dummy_run
+(EngineCore pid=1740)     outputs = self.model(
+(EngineCore pid=1740)         input_ids=input_ids,
+(EngineCore pid=1740)     ...<3 lines>...
+(EngineCore pid=1740)         **model_kwargs,
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/cuda_graph.py", line 254, in __call__
+(EngineCore pid=1740)     return self.runnable(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+(EngineCore pid=1740)     return self._call_impl(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+(EngineCore pid=1740)     return forward_call(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/model_executor/models/qwen3_5.py", line 557, in forward
+(EngineCore pid=1740)     hidden_states = self.language_model.model(
+(EngineCore pid=1740)         input_ids=input_ids,
+(EngineCore pid=1740)     ...<2 lines>...
+(EngineCore pid=1740)         inputs_embeds=inputs_embeds,
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/decorators.py", line 670, in __call__
+(EngineCore pid=1740)     output = self.aot_compiled_fn(self, *args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/aot_compile.py", line 244, in __call__
+(EngineCore pid=1740)     return self.fn(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/model_executor/models/qwen3_next.py", line 646, in forward
+(EngineCore pid=1740)     def forward(
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/caching.py", line 217, in __call__
+(EngineCore pid=1740)     return self.optimized_call(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "<string>", line 277, in execution_fn
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/cuda_graph.py", line 254, in __call__
+(EngineCore pid=1740)     return self.runnable(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+(EngineCore pid=1740)     return range_entry.runnable(*args)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_inductor/standalone_compile.py", line 321, in __call__
+(EngineCore pid=1740)     return self.inner_fn(*args)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/aot_compile_types.py", line 221, in __call__
+(EngineCore pid=1740)     return self.compiled_fn(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740)     return fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/aot_autograd.py", line 1277, in forward
+(EngineCore pid=1740)     return compiled_fn(full_args)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1141, in runtime_wrapper
+(EngineCore pid=1740)     result = _codegen_runtime_wrapper(
+(EngineCore pid=1740)         _inner_compiled_fn,
+(EngineCore pid=1740)     ...<2 lines>...
+(EngineCore pid=1740)         args,
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/subclass_codegen.py:codegen(runtime_wrapper_orchestration)", line 8, in _runtime_wrapper
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 2548, in __call__
+(EngineCore pid=1740)     return self.compiled_fn(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_inductor/output_code.py", line 763, in __call__
+(EngineCore pid=1740)     return self.current_callable(inputs)
+(EngineCore pid=1740)            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/.cache/vllm/torch_compile_cache/torch_aot_compile/5b5ed49fa1a1f0683b22eca6fb777962745e73d9bf907d90dcf1f266332b3ca3/inductor_cache/wt/cwtsmnbddttqq4xpstrj4sudtwklsxofvbfcrunwujcfuze3pv3z.py", line 575, in call
+(EngineCore pid=1740)     buf9 = torch.ops.vllm.flashinfer_mm_fp4.default(buf2, reinterpret_tensor(arg6_1, (2560, 16384), (1, 2560), 0), aten.view.dtype(buf8, torch.uint8), aten.view.dtype(reinterpret_tensor(arg5_1, (320, 16384), (1, 320), 0), torch.uint8), arg7_1, torch.bfloat16, False, 'cutlass')
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_ops.py", line 875, in __call__
+(EngineCore pid=1740)     return self._op(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+(EngineCore pid=1740)     return disable_fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740)     return fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 432, in __torch_dispatch__
+(EngineCore pid=1740)     res = func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_ops.py", line 875, in __call__
+(EngineCore pid=1740)     return self._op(*args, **kwargs)
+(EngineCore pid=1740)            ~~~~~~~~^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 441, in backend_impl
+(EngineCore pid=1740)     result = self._backend_fns[device_type](*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+(EngineCore pid=1740)     return disable_fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+(EngineCore pid=1740)     return fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 502, in wrapped_fn
+(EngineCore pid=1740)     return fn(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/utils/flashinfer.py", line 584, in flashinfer_mm_fp4
+(EngineCore pid=1740)     return flashinfer_mm_fp4_(
+(EngineCore pid=1740)         A,
+(EngineCore pid=1740)     ...<8 lines>...
+(EngineCore pid=1740)         backend=backend,
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/utils.py", line 1421, in wrapper
+(EngineCore pid=1740)     return func(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/api_logging.py", line 2333, in _auto_dump_wrapper
+(EngineCore pid=1740)     return _inner(*args, **kwargs)
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 6666, in mm_fp4
+(EngineCore pid=1740)     runners = [backend_to_runner_factory[cur_backend]() for cur_backend in backends]
+(EngineCore pid=1740)                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 6656, in <lambda>
+(EngineCore pid=1740)     "cutlass": lambda: get_cutlass_fp4_gemm_module(
+(EngineCore pid=1740)                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+(EngineCore pid=1740)         major, minor
+(EngineCore pid=1740)         ^^^^^^^^^^^^
+(EngineCore pid=1740)     ).cutlass_fp4_gemm_runner(),
+(EngineCore pid=1740)     ^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 1588, in get_cutlass_fp4_gemm_module
+(EngineCore pid=1740)     return get_gemm_sm120_module_cutlass_fp4()
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/gemm/gemm_base.py", line 1572, in get_gemm_sm120_module_cutlass_fp4
+(EngineCore pid=1740)     module = gen_gemm_sm120_module_cutlass_fp4().build_and_load()
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/core.py", line 320, in build_and_load
+(EngineCore pid=1740)     self.build()
+(EngineCore pid=1740)     ~~~~~~~~~~^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/core.py", line 427, in build
+(EngineCore pid=1740)     run_ninja(self.build_dir, self.ninja_path, verbose)
+(EngineCore pid=1740)     ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/flashinfer/jit/cpp_ext.py", line 370, in run_ninja
+(EngineCore pid=1740)     subprocess.run(
+(EngineCore pid=1740)     ~~~~~~~~~~~~~~^
+(EngineCore pid=1740)         command,
+(EngineCore pid=1740)         ^^^^^^^^
+(EngineCore pid=1740)     ...<4 lines>...
+(EngineCore pid=1740)         text=True,
+(EngineCore pid=1740)         ^^^^^^^^^^
+(EngineCore pid=1740)     )
+(EngineCore pid=1740)     ^
+(EngineCore pid=1740)   File "/usr/lib/python3.14/subprocess.py", line 555, in run
+(EngineCore pid=1740)     with Popen(*popenargs, **kwargs) as process:
+(EngineCore pid=1740)          ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/usr/lib/python3.14/subprocess.py", line 1039, in __init__
+(EngineCore pid=1740)     self._execute_child(args, executable, preexec_fn, close_fds,
+(EngineCore pid=1740)     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)                         pass_fds, cwd, env,
+(EngineCore pid=1740)                         ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)     ...<5 lines>...
+(EngineCore pid=1740)                         gid, gids, uid, umask,
+(EngineCore pid=1740)                         ^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)                         start_new_session, process_group)
+(EngineCore pid=1740)                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1740)   File "/usr/lib/python3.14/subprocess.py", line 1990, in _execute_child
+(EngineCore pid=1740)     raise child_exception_type(errno_num, err_msg, err_filename)
+(EngineCore pid=1740) FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+[rank0]:[W819 12:14:56.615242687 ProcessGroupNCCL.cpp:1624] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+(APIServer pid=1450) INFO 08-19 12:14:57 [utils.py:612] [shutdown] Process manager: send sigterm to process EngineCore
+(APIServer pid=1450) Traceback (most recent call last):
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/bin/vllm", line 6, in <module>
+(APIServer pid=1450)     sys.exit(main())
+(APIServer pid=1450)              ~~~~^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/cli/main.py", line 97, in main
+(APIServer pid=1450)     args.dispatch_function(args)
+(APIServer pid=1450)     ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/cli/serve.py", line 152, in cmd
+(APIServer pid=1450)     uvloop.run(run_server(args))
+(APIServer pid=1450)     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/uvloop/__init__.py", line 96, in run
+(APIServer pid=1450)     return __asyncio.run(
+(APIServer pid=1450)            ~~~~~~~~~~~~~^
+(APIServer pid=1450)         wrapper(),
+(APIServer pid=1450)         ^^^^^^^^^^
+(APIServer pid=1450)     ...<2 lines>...
+(APIServer pid=1450)         **run_kwargs
+(APIServer pid=1450)         ^^^^^^^^^^^^
+(APIServer pid=1450)     )
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/usr/lib/python3.14/asyncio/runners.py", line 204, in run
+(APIServer pid=1450)     return runner.run(main)
+(APIServer pid=1450)            ~~~~~~~~~~^^^^^^
+(APIServer pid=1450)   File "/usr/lib/python3.14/asyncio/runners.py", line 127, in run
+(APIServer pid=1450)     return self._loop.run_until_complete(task)
+(APIServer pid=1450)            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+(APIServer pid=1450)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=1450)     return await main
+(APIServer pid=1450)            ^^^^^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/openai/api_server.py", line 764, in run_server
+(APIServer pid=1450)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/openai/api_server.py", line 778, in run_server_worker
+(APIServer pid=1450)     async with build_async_engine_client(
+(APIServer pid=1450)                ~~~~~~~~~~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         args,
+(APIServer pid=1450)         ^^^^^
+(APIServer pid=1450)         client_config=client_config,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ) as engine_client:
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/usr/lib/python3.14/contextlib.py", line 214, in __aenter__
+(APIServer pid=1450)     return await anext(self.gen)
+(APIServer pid=1450)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/openai/api_server.py", line 132, in build_async_engine_client
+(APIServer pid=1450)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=1450)                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         engine_args,
+(APIServer pid=1450)         ^^^^^^^^^^^^
+(APIServer pid=1450)         usage_context=usage_context,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)         client_config=client_config,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ) as engine:
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/usr/lib/python3.14/contextlib.py", line 214, in __aenter__
+(APIServer pid=1450)     return await anext(self.gen)
+(APIServer pid=1450)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/entrypoints/openai/api_server.py", line 168, in build_async_engine_client_from_engine_args
+(APIServer pid=1450)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=1450)         vllm_config=vllm_config,
+(APIServer pid=1450)     ...<6 lines>...
+(APIServer pid=1450)         client_index=client_index,
+(APIServer pid=1450)     )
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/async_llm.py", line 220, in from_vllm_config
+(APIServer pid=1450)     return cls(
+(APIServer pid=1450)         vllm_config=vllm_config,
+(APIServer pid=1450)     ...<9 lines>...
+(APIServer pid=1450)         client_index=client_index,
+(APIServer pid=1450)     )
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/async_llm.py", line 149, in __init__
+(APIServer pid=1450)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=1450)                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         vllm_config=vllm_config,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ...<4 lines>...
+(APIServer pid=1450)         client_index=client_index,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     )
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=1450)     return func(*args, **kwargs)
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 139, in make_async_mp_client
+(APIServer pid=1450)     return AsyncMPClient(*client_args)
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=1450)     return func(*args, **kwargs)
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 987, in __init__
+(APIServer pid=1450)     ~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         asyncio_mode=True,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ...<3 lines>...
+(APIServer pid=1450)         client_addresses=client_addresses,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     )
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 609, in __init__
+(APIServer pid=1450)     with launch_core_engines(
+(APIServer pid=1450)          ~~~~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         vllm_config, executor_class, log_stats, addresses
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ) as (engine_manager, coordinator, addresses, tensor_queue):
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/usr/lib/python3.14/contextlib.py", line 148, in __exit__
+(APIServer pid=1450)     next(self.gen)
+(APIServer pid=1450)     ~~~~^^^^^^^^^^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/utils.py", line 1194, in launch_core_engines
+(APIServer pid=1450)     wait_for_engine_startup(
+(APIServer pid=1450)     ~~~~~~~~~~~~~~~~~~~~~~~^
+(APIServer pid=1450)         handshake_socket,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     ...<6 lines>...
+(APIServer pid=1450)         coordinator.proc if coordinator else None,
+(APIServer pid=1450)         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1450)     )
+(APIServer pid=1450)     ^
+(APIServer pid=1450)   File "/home/kami/qwen3-nvfp4-rtx5090/venv/lib/python3.14/site-packages/vllm/v1/engine/utils.py", line 1253, in wait_for_engine_startup
+(APIServer pid=1450)     raise RuntimeError(
+(APIServer pid=1450)     ...<3 lines>...
+(APIServer pid=1450)     )
+(APIServer pid=1450) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}

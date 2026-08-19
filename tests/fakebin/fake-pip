@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Fake pip for tests: records installs and plants a fake nvcc when the
+# CUDA toolkit wheel is "installed".
+if [ "${1:-}" = "--version" ]; then
+  printf 'pip 25.0.1 from fake venv\n'
+  exit 0
+fi
+if [ -n "${FAKE_PIP_LOG:-}" ]; then
+  printf '%s\n' "$*" >> "$FAKE_PIP_LOG"
+fi
+saw_install=0
+installed=""
+for arg in "$@"; do
+  case "$arg" in
+    --*|==*) : ;;
+    *) [ "$saw_install" = "1" ] && installed="$arg" ;;
+  esac
+  [ "$arg" = "install" ] && saw_install=1
+done
+case "$installed" in
+  *cuda-toolkit*)
+    venv_bin="$(cd "$(dirname "$0")" && pwd)"
+    if [ -n "${FAKE_NVCC_SRC:-}" ] && [ -f "$FAKE_NVCC_SRC" ]; then
+      if [ "${FAKE_NVCC_SITE_PACKAGES:-0}" = "1" ]; then
+        # Real 'cuda-toolkit' layout: site-packages/nvidia/cu13/{bin,include,lib}.
+        cu13_dir="$(dirname "$venv_bin")/lib/python3.14/site-packages/nvidia/cu13"
+        mkdir -p "$cu13_dir/bin" "$cu13_dir/include" "$cu13_dir/lib"
+        cp "$FAKE_NVCC_SRC" "$cu13_dir/bin/nvcc"
+        # CUDART_VERSION drives the CCCL compiler/header compatibility check;
+        # default 13000 matches the fake nvcc's default release 13.0.
+        printf '#define CUDART_VERSION  %s\n' "${FAKE_CUDA_RUNTIME_VERSION:-13000}" > "$cu13_dir/include/cuda_runtime.h"
+      else
+        cp "$FAKE_NVCC_SRC" "$venv_bin/nvcc"
+      fi
+    fi
+    ;;
+esac
+exit 0

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+printf 'Microsoft Windows [Version 10.0.%s.5123]\n' "${FAKE_WIN_BUILD:-19045}"
+exit 0

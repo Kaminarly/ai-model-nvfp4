@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Fake python3 for tests. Creates a minimal fake venv on 'python3 -m venv DIR'.
+if [ "${1:-}" = "--version" ]; then
+  printf 'Python %s\n' "${FAKE_PY_VERSION:-3.12.3}"
+  exit 0
+fi
+if [ "${1:-}" = "-m" ]; then
+  case "${2:-}" in
+    venv)
+      target="${3:-}"
+      if [ -n "$target" ] && [ "$target" != "--help" ]; then
+        mkdir -p "$target/bin"
+        cp "$0" "$target/bin/python"
+        if [ -f "$(dirname "$0")/fake-pip" ]; then
+          cp "$(dirname "$0")/fake-pip" "$target/bin/pip"
+          cp "$(dirname "$0")/fake-pip" "$target/bin/pip3"
+        fi
+      fi
+      exit 0
+      ;;
+    pip)
+      if [ -f "$(dirname "$0")/pip" ]; then exec bash "$(dirname "$0")/pip" "${@:3}"; fi
+      exit 0
+      ;;
+  esac
+  exit 0
+fi
+if [ "${1:-}" = "-c" ]; then
+  case "${2:-}" in
+    *vllm*) printf '%s\n' "${FAKE_VLLM_VERSION:-0.27.1}" ;;
+    *torch*) printf '%s\n' "${FAKE_TORCH_VERSION:-2.9.0}" ;;
+    *sysconfig*) printf '%s\n' "${FAKE_PY_INCLUDE:-}" ;;
+  esac
+  exit 0
+fi
+exit 0

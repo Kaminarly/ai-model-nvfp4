@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# fake ninja for tests: preflight's build-tools probe only needs a file it can
+# find in PATH; ninja is never executed by the check.
+exit 0

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Fake nvidia-smi: FAKE_GPU_MODE=ok|missing|no-gpu, FAKE_GPU_LINE controls
+# the identity query, FAKE_GPU_MEMORY_LINE the memory query, FAKE_GPU_APPS
+# the compute-apps list.
+mode="${FAKE_GPU_MODE:-ok}"
+case "$mode" in
+  missing) printf 'nvidia-smi: command not found\n' >&2; exit 127 ;;
+  no-gpu)  printf 'No devices were found\n' >&2; exit 1 ;;
+esac
+case "${1:-}" in
+  --query-gpu=name,driver_version,memory.total*)
+    printf '%s\n' "${FAKE_GPU_LINE:-NVIDIA GeForce RTX 5090, 610.88, 32768 MiB}"
+    exit 0
+    ;;
+  --query-gpu=memory.total,memory.used*)
+    printf '%s\n' "${FAKE_GPU_MEMORY_LINE:-32607, 1024}"
+    exit 0
+    ;;
+  --query-compute-apps=*)
+    printf '%s\n' "${FAKE_GPU_APPS:-}"
+    exit 0
+    ;;
+esac
+printf 'Fake NVIDIA System Management Interface -- test stub\n'
+exit 0

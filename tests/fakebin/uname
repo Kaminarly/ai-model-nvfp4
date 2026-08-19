@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+case "${1:-}" in
+  -r|--kernel-release) printf '%s\n' "${FAKE_KERNEL:-6.6.36.1-microsoft-standard-WSL2}" ;;
+  -s) printf '%s\n' "Linux" ;;
+  -a) printf '%s\n' "Linux fake 6.6.36.1-microsoft-standard-WSL2 #1 SMP" ;;
+  *) printf '%s\n' "fake uname (no args)" ;;
+esac
+exit 0

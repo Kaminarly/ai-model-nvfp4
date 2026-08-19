@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Fake nvcc: FAKE_CUDA_RELEASE controls the reported release.
+printf 'nvcc: NVIDIA (R) Cuda compiler driver\n'
+printf 'Cuda compilation tools, release %s, V%s.0.0\n' "${FAKE_CUDA_RELEASE:-13.0}" "${FAKE_CUDA_RELEASE:-13.0}"
+exit 0
