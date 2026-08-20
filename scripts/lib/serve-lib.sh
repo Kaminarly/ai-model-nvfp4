@@ -93,7 +93,10 @@ serve_argv() {
     "--kv-cache-dtype" "fp8" \
     "--host" "$3" "--port" "$4" \
     "--served-model-name" "$5" \
-    "--max-model-len" "$6" "--max-num-seqs" "$7"
+    "--max-model-len" "$6" "--max-num-seqs" "$7" \
+    "--enable-auto-tool-choice" \
+    "--tool-call-parser" "qwen3_xml" \
+    "--reasoning-parser" "qwen3"
   if [ -n "${8:-}" ]; then
     printf '%s\n' "--gpu-memory-utilization" "$8"
   fi

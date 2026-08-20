@@ -270,7 +270,7 @@ else
   expect_contains "$out" "http://127.0.0.1:$PORT/v1" "serve.sh prints the endpoint URL"
 
   log="$(cat "$VLLM_LOG" 2>/dev/null)"
-  expect_contains "$log" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 8192 --max-num-seqs 1 --trust-remote-code" "vllm process got the exact fixed argv"
+  expect_contains "$log" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 8192 --max-num-seqs 1 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --trust-remote-code" "vllm process got the exact fixed argv"
   expect_contains "$log" "HF_HUB_OFFLINE=1" "offline mode exported to the process"
   expect_contains "$log" "TRANSFORMERS_OFFLINE=1" "transformers offline exported to the process"
   expect_contains "$log" "server-listening 127.0.0.1:$PORT model=model-ok" "server registered the served model"

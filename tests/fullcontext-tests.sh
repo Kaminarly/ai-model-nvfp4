@@ -345,7 +345,7 @@ else
   expect_contains "$out" "full-context service is running" "service left running"
 
   # Per-port argv logs: smoke, each ramp step, full config.
-  expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 262144 --max-num-seqs 16 --gpu-memory-utilization 0.97 --trust-remote-code" "full instance got the exact fixed argv"
+  expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 262144 --max-num-seqs 16 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --gpu-memory-utilization 0.97 --trust-remote-code" "full instance got the exact fixed argv"
   expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "HF_HUB_OFFLINE=1" "offline mode exported to the final process"
 
   # Diagnostics: if the green path failed, show the launcher output tail and
