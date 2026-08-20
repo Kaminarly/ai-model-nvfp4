@@ -68,4 +68,5 @@
 - 按用户要求把四个议题的实施总结归纳进 `.scratch/qwen3-8-27b-native-nvfp4-wsl2/spec.md` 新增的"实施总结（议题 01–04）"一节，含各议题交付物、真机结果与关键修正。
 - 未改任何脚本/测试；四套测试维持全绿。
 - 追加（同日）：README 第 6 节注意事项新增"内存（RAM）也会被占用"条目、第 7 节新增 Q11（服务为何占用几十 GB 内存的解释与 OOM 排查）；模型名按用户改法统一为 Qwen3.8-27B（README 标题/正文 + spec 实施总结同步，保留 config 内部 `model_type: qwen3_5` 的事实）。
+- 追加（同日）：新增 `scripts/direct.sh`——预检（22 项）→ 显存门 → 直接启动 vLLM + OpenAI API 服务（端口默认 8192），不做任何验证步骤（无冒烟/梯度/并发/边界探测）。复用现有共享库（source 前设 `SERVE_PORT=8192 FULL_MAX_MODEL_LEN=131072 FULL_MAX_NUM_SEQS=16 FULL_GPU_MEM_UTIL=0.90`，均可被环境变量覆盖）；无新增库文件、零测试改动。真机验证：dry-run 22/22 READY + 正确 argv；真实启动 `/v1/models` 返回 max_model_len 131072、chat 请求正常，验证后停止。README 相应更新（4.1 路径表 / 4.2 direct 推荐命令 / 参数表 / 5 节调用示例改 8192 / 注意事项第 2 条 / FAQ Q12）。
 
