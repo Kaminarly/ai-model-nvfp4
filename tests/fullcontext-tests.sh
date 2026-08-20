@@ -340,7 +340,7 @@ else
   expect_contains "$out" "full-config: context in effect (max_model_len=262144)" "full config context verified"
   expect_contains "$out" "concurrency probe: 4/4 concurrent requests returned HTTP 200" "concurrency confirmed with real requests"
   expect_contains "$out" "full-config: long-context request (131072 bytes" "long request inside the full config returned 200"
-  expect_contains "$out" "boundary probe: over-limit prompt (1100000 bytes > 262144-token context) rejected" "full-config over-boundary rejection verified"
+  expect_contains "$out" "boundary probe: over-limit prompt (2500000 bytes > 262144-token context) rejected" "full-config over-boundary rejection verified"
   expect_contains "$out" "full-context configuration verified and enabled" "full config enabled"
   expect_contains "$out" "full-context service is running" "service left running"
 

@@ -25,14 +25,18 @@ FULL_GPU_MEM_UTIL="${FULL_GPU_MEM_UTIL:-0.97}"       # target VRAM utilization (
 # the machine's actual context boundary. Override to probe other lengths.
 CONTEXT_LADDER="${CONTEXT_LADDER:-32768 65536 131072 262144}"
 # Boundary probe sizes: SMOKE_OVERFLOW_BYTES is the over-limit prompt for the
-# smoke step (the real tokenizer turns ~4 bytes into one token, so 65536 bytes
-# is comfortably beyond the 8192-token short context); FULL_OVERFLOW_BYTES is
-# the over-limit prompt for the full 262144-token config (1.1 MB is beyond
-# 262144 tokens even at 1 byte/token). LONG_PROOF_BYTES is the in-bound long
-# prompt sent after the full config boots.
+# smoke step; FULL_OVERFLOW_BYTES is the over-limit prompt for the full
+# config. The probe text is a run of 'x', which this tokenizer compresses at
+# exactly 8 bytes per token (measured on the real model), so the sizes were
+# chosen to exceed the respective context limits: 65536 bytes = 8192 tokens
+# (>= the 8192-token smoke context) and 2500000 bytes = 312500 tokens (> the
+# 262144-token full-config target; the previous 1100000 bytes = 137500 tokens
+# fell below 200000-token contexts and the probe wrongly returned 200).
+# LONG_PROOF_BYTES is the in-bound long prompt sent after the full config
+# boots (131072 bytes = 16384 tokens, well inside any full context).
 SMOKE_OVERFLOW_BYTES="${SMOKE_OVERFLOW_BYTES:-65536}"
 LONG_PROOF_BYTES="${LONG_PROOF_BYTES:-131072}"
-FULL_OVERFLOW_BYTES="${FULL_OVERFLOW_BYTES:-1100000}"
+FULL_OVERFLOW_BYTES="${FULL_OVERFLOW_BYTES:-2500000}"
 # How many concurrent short requests the full-config confirmation sends to
 # exercise the 16-sequence scheduler.
 CONCURRENT_PROOF="${CONCURRENT_PROOF:-16}"
