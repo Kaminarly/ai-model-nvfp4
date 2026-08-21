@@ -27,9 +27,9 @@ Usage:
 
 Options:
   --model-dir DIR   Local folder with the ModelOpt NVFP4 weights (required).
-  --prefix DIR      Runtime directory (default: $HOME/qwen3-nvfp4-rtx5090).
+  --prefix DIR      Runtime directory (default: $HOME/vllm).
 
-Exit: 0 = READY to start the offline service (issue 03); 1 = NOT READY
+Exit: 0 = READY to start the offline service; 1 = NOT READY
 (each failure prints a reason and a fix). No model files are downloaded,
 copied, converted or deleted; this check makes no network calls.
 EOF

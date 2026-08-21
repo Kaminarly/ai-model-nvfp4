@@ -34,7 +34,7 @@ Commands:
   help      Show this help.
 
 Options:
-  --prefix DIR   Runtime directory (default: $HOME/qwen3-nvfp4-rtx5090).
+  --prefix DIR   Runtime directory (default: $HOME/vllm).
   --force        Rebuild the venv if it already exists (create only).
   --dry-run      Print the commands that would run, without executing (create only).
 
@@ -57,7 +57,7 @@ cmd_create() {
       --force) force=1; shift ;;
       --dry-run) dry=1; shift ;;
       --help|-h) usage; exit 0 ;;
-      --model-dir|--model) fail "model handling is out of scope for this command (issue 01)."; exit 2 ;;
+      --model-dir|--model) fail "model handling is out of scope for this command."; exit 2 ;;
       *) fail "unknown option: $1"; usage >&2; exit 2 ;;
     esac
   done
@@ -141,7 +141,7 @@ models:  NOT handled by this command (issues 02/03 use a user-specified local di
   section "Done"
   ok "runtime created at $prefix"
   info "Next: bash scripts/wsl2-env.sh verify --prefix $prefix"
-  info "Then: issue 02 (unified preflight) and issue 03 (offline short-context service)."
+  info "Then: the unified preflight and the offline short-context service."
 }
 
 cmd_verify() {
@@ -150,7 +150,7 @@ cmd_verify() {
     case "$1" in
       --prefix) prefix="${2:-}"; [ -n "$prefix" ] || { fail "--prefix needs a value"; exit 2; }; shift 2 ;;
       --help|-h) usage; exit 0 ;;
-      --model-dir|--model) fail "model handling is out of scope for this command (issue 01)."; exit 2 ;;
+      --model-dir|--model) fail "model handling is out of scope for this command."; exit 2 ;;
       *) fail "unknown option: $1"; usage >&2; exit 2 ;;
     esac
   done
@@ -160,7 +160,7 @@ cmd_verify() {
   FAILED=0
   WARNED=0
 
-  section "Verify runtime (issue 01): $prefix"
+  section "Verify runtime: $prefix"
 
   check_start venv "venv exists at $prefix"
   if [ ! -d "$venv" ]; then
@@ -193,7 +193,7 @@ cmd_verify() {
   fi
 
   if checks_summary; then
-    info "Next: issue 02 (unified preflight) and issue 03 (offline short-context service)."
+    info "Next: the unified preflight and the offline short-context service."
     exit 0
   fi
   exit 1

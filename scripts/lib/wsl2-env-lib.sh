@@ -23,7 +23,7 @@ VLLM_PIP_SPEC="${VLLM_PIP_SPEC:-vllm==${VLLM_VERSION}}"
 REQUIRED_GPU_NAME="${REQUIRED_GPU_NAME:-RTX 5090}"
 REQUIRED_DRIVER_VERSION="${REQUIRED_DRIVER_VERSION:-610.88}"
 MIN_PYTHON_VERSION="${MIN_PYTHON_VERSION:-3.10}"
-WSL2_ENV_PREFIX="${WSL2_ENV_PREFIX:-$HOME/qwen3-nvfp4-rtx5090}"
+WSL2_ENV_PREFIX="${WSL2_ENV_PREFIX:-$HOME/vllm}"
 
 # Test seams (only needed by tests/run-tests.sh; ignored in normal use).
 WIN_VER_CMD="${WIN_VER_CMD:-cmd.exe}"
@@ -270,7 +270,7 @@ check_gpu_identity() {
   if [ "$mem_mib" -ge 30720 ]; then
     check_ok "RTX 5090, driver $driver, $((mem_mib / 1024)) GiB VRAM"
   elif [ "$mem_mib" -ge 24576 ]; then
-    check_warn "only $((mem_mib / 1024)) GiB VRAM: short-context startup may work, but the full 262144-token config (issue 04) will not fit."
+    check_warn "only $((mem_mib / 1024)) GiB VRAM: short-context startup may work, but the full 262144-token config will not fit."
     check_ok "RTX 5090, driver $driver, $((mem_mib / 1024)) GiB VRAM (below 32 GB)"
   else
     check_fail "VRAM is ${mem_mib} MiB (~$((mem_mib / 1024)) GiB), expected ~32 GB" "an RTX 5090 reports 32768 MiB." \
@@ -312,7 +312,7 @@ run_prereq_checks() {
   PASSED=0
   FAILED=0
   WARNED=0
-  section "Prerequisite checks (issue 01)"
+  section "Prerequisite checks"
   info "Target: Windows 10 + WSL2 Ubuntu + ${REQUIRED_GPU_NAME} 32 GB; CUDA ${CUDA_MAJOR_VERSION} toolkit; vLLM ${VLLM_VERSION}"
   check_wsl2
   check_ubuntu
