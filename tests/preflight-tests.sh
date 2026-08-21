@@ -97,6 +97,17 @@ make_model() { # make_model <dir>
 
 MODEL_OK="$TMP_ROOT/model-ok"; make_model "$MODEL_OK"
 MODEL_NO_SHARD="$TMP_ROOT/model-no-shard"; make_model "$MODEL_NO_SHARD"; rm "$MODEL_NO_SHARD/model-00002-of-00003.safetensors"
+# Heretic-Ara-style split: 2 shards + a separate MTP weight file. The preflight
+# must accept any split the index declares, not a hardcoded 3-shard layout.
+MODEL_MTP_SPLIT="$TMP_ROOT/model-mtp-split"
+mkdir -p "$MODEL_MTP_SPLIT"
+for f in model-00001-of-00002.safetensors model-00002-of-00002.safetensors model-mtp-fc.safetensors; do
+  make_safetensors "$MODEL_MTP_SPLIT/$f" 1024
+done
+printf '%s\n' '{"metadata":{"total_size":0},"weight_map":{"layers.0.weight":"model-00001-of-00002.safetensors","layers.1.weight":"model-00002-of-00002.safetensors","mtp.0.weight":"model-mtp-fc.safetensors"}}' > "$MODEL_MTP_SPLIT/model.safetensors.index.json"
+for f in config.json hf_quant_config.json generation_config.json tokenizer_config.json tokenizer.json chat_template.jinja; do
+  cp "$MODEL_OK/$f" "$MODEL_MTP_SPLIT/$f"
+done
 MODEL_NO_CONFIG="$TMP_ROOT/model-no-config"; make_model "$MODEL_NO_CONFIG"; rm "$MODEL_NO_CONFIG/config.json"
 MODEL_EMPTY_SHARD="$TMP_ROOT/model-empty-shard"; make_model "$MODEL_EMPTY_SHARD"; : > "$MODEL_EMPTY_SHARD/model-00003-of-00003.safetensors"
 MODEL_BAD_INDEX="$TMP_ROOT/model-bad-index"; make_model "$MODEL_BAD_INDEX"
@@ -129,13 +140,19 @@ expect_contains "$out" "nvcc 13.0 matches toolkit headers" "nvcc release matches
 expect_contains "$out" "ninja:" "ninja build tool present"
 expect_contains "$out" "3 shard headers consistent" "shard structure intact"
 
+out="$(run_green -- --prefix "$PFX" --model-dir "$MODEL_MTP_SPLIT")"; code=$?
+expect_exit 0 "$code" "green preflight (2-shard + mtp split) exits 0"
+expect_contains "$out" "preflight result: READY" "MTP-split model passes preflight"
+expect_contains "$out" "index lists 3 shard(s), all present" "index cross-check covers the mtp file"
+expect_contains "$out" "3 shard headers consistent" "mtp file header verified too"
+
 # ---------------------------------------------------------------------------
 # 2. model integrity failures
 # ---------------------------------------------------------------------------
 section "preflight: model integrity failures"
 out="$(run_green -- --prefix "$PFX" --model-dir "$MODEL_NO_SHARD")"; code=$?
 expect_exit 1 "$code" "missing shard exits 1"
-expect_contains "$out" "missing required file: model-00002-of-00003.safetensors" "names missing shard"
+expect_contains "$out" "index references missing shard: model-00002-of-00003.safetensors" "names missing shard (caught by the index cross-check)"
 expect_contains "$out" "preflight result: NOT READY" "single NOT READY boundary"
 
 out="$(run_green -- --prefix "$PFX" --model-dir "$MODEL_NO_CONFIG")"; code=$?

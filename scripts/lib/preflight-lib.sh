@@ -10,22 +10,21 @@
 # ---------------------------------------------------------------------------
 # Model file contract (issue 02)
 #
-# File list from the model card gittensor-model-hub/Qwen3.8-27B-NVFP4-RTX5090:
-# exactly 3 ModelOpt NVFP4 safetensors shards, the shard index, and the
-# configs vLLM needs to boot the checkpoint offline (quantization=modelopt,
-# kv-cache-dtype=fp8, trust-remote-code).
+# The fixed config files vLLM needs to boot the checkpoint offline
+# (quantization=modelopt, kv-cache-dtype=fp8, trust-remote-code). The weight
+# shards are NOT enumerated here: their names and count are derived from
+# model.safetensors.index.json in check_model_index, so any valid split the
+# model card publishes passes (3 shards for the RTX5090 card, 2 shards +
+# model-mtp-fc.safetensors for Heretic-Ara).
 # ---------------------------------------------------------------------------
 REQUIRED_MODEL_FILES="
-model-00001-of-00003.safetensors
-model-00002-of-00003.safetensors
-model-00003-of-00003.safetensors
-model.safetensors.index.json
 config.json
 hf_quant_config.json
 tokenizer.json
 tokenizer_config.json
 generation_config.json
 chat_template.jinja
+model.safetensors.index.json
 "
 
 # VRAM thresholds (MiB; overridable via environment).
@@ -55,7 +54,7 @@ check_model_path() { # check_model_path <model-dir>
 
 check_model_files() { # check_model_files <model-dir>
   local dir="$1" f n=0
-  check_start model-files "model files complete (3 shards + index + configs)"
+  check_start model-files "model files complete (fixed configs + index)"
   for f in $REQUIRED_MODEL_FILES; do
     n=$((n + 1))
     if [ ! -f "$dir/$f" ]; then
@@ -76,9 +75,14 @@ check_model_index() { # check_model_index <model-dir>
   local dir="$1" idx refs r n=0
   check_start model-index "shard index consistent with files"
   idx="$dir/model.safetensors.index.json"
-  refs="$(grep -oE '"model-0000[0-9]-of-00003\.safetensors"' "$idx" 2>/dev/null | tr -d '"' | sort -u)"
+  # The weight map names every shard the model is split across. The model
+  # card publishes 3 shards (model-00001..00003-of-00003.safetensors), but the
+  # file list is deliberately derived from the index so a valid checkpoint
+  # split differently (e.g. Heretic-Ara: 2 shards + model-mtp-fc.safetensors)
+  # is not rejected by a hardcoded count.
+  refs="$(grep -oE '"model-[0-9]+-of-[0-9]+\.safetensors"|"model-[a-z0-9-]+\.safetensors"' "$idx" 2>/dev/null | tr -d '"' | sort -u)"
   if [ -z "$refs" ]; then
-    check_fail "index lists no shards" "'$idx' contains no model-0000N-of-00003.safetensors references." \
+    check_fail "index lists no shards" "'$idx' contains no model-*.safetensors references." \
       "The index is wrong or the wrong file was copied; re-copy it from the model card repo."
     return 1
   fi
@@ -88,6 +92,11 @@ check_model_index() { # check_model_index <model-dir>
     if [ ! -f "$dir/$r" ]; then
       check_fail "index references missing shard: $r" "the index maps weights to a file that is not in the folder." \
         "Copy the complete folder from the model card; never mix shards from different downloads."
+      return 1
+    fi
+    if [ ! -s "$dir/$r" ]; then
+      check_fail "file is empty: $r" "a zero-byte file means the copy is broken." \
+        "Re-copy '$r' (e.g. rsync --partial or re-download just that file), then re-run."
       return 1
     fi
   done <<<"$refs"
@@ -164,12 +173,16 @@ check_shard_integrity() {
 }
 
 check_model_shard_headers() { # check_model_shard_headers <model-dir>
-  local dir="$1" f
+  local dir="$1" idx refs f n=0
   check_start shard-headers "safetensors shard headers fully cover their data"
-  for f in model-00001-of-00003.safetensors model-00002-of-00003.safetensors model-00003-of-00003.safetensors; do
+  idx="$dir/model.safetensors.index.json"
+  refs="$(grep -oE '"model-[0-9]+-of-[0-9]+\.safetensors"|"model-[a-z0-9-]+\.safetensors"' "$idx" 2>/dev/null | tr -d '"' | sort -u)"
+  for f in $refs; do
+    [ -z "$f" ] && continue
     check_shard_integrity "$dir" "$f" || return 1
+    n=$((n + 1))
   done
-  check_ok "3 shard headers consistent with file sizes"
+  check_ok "$n shard headers consistent with file sizes"
 }
 
 # check_cuda_home <venv>: FlashInfer JIT and deep-gemm look up CUDA_HOME /
@@ -364,7 +377,7 @@ run_preflight() {
   FAILED=0
   WARNED=0
 
-  section "Unified preflight (issue 02)"
+  section "Unified preflight"
   info "Target: offline startup of ModelOpt NVFP4 weights; vLLM ${VLLM_VERSION}; CUDA ${CUDA_MAJOR_VERSION}"
   run_prereq_checks
 
