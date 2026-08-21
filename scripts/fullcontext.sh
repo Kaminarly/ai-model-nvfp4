@@ -27,16 +27,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
   cat <<'EOF'
 Usage:
-  fullcontext.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--dry-run]
+  fullcontext.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--lan] [--dry-run]
   fullcontext.sh help
 
 Options:
   --model-dir DIR   Local folder with the raw ModelOpt NVFP4 safetensors (required).
-  --prefix DIR      Runtime directory (default: $HOME/qwen3-nvfp4-rtx5090).
+  --prefix DIR      Runtime directory (default: $HOME/vllm).
   --host IP         Bind address (default: 127.0.0.1; loopback only - other
-                    addresses are refused until the spec's auth/access-control
-                    design exists).
+                    addresses are refused unless --lan is given).
   --port N          Port (default: 8000).
+  --lan             Bind 0.0.0.0 (all interfaces) so devices on the LAN can
+                    reach the API. Windows still needs the portproxy + firewall
+                    setup (see README section '局域网访问').
   --dry-run         Print the exact validation plan (preflight + VRAM gate +
                     every planned boot) without launching anything.
 
@@ -66,7 +68,7 @@ cmd_start() {
   fi
   DRY_RUN="$START_DRY"
 
-  section "Controlled full-context launch (issue 04)"
+  section "Controlled full-context launch"
   info "Target: ${FULL_MAX_MODEL_LEN} tokens, ${FULL_MAX_NUM_SEQS} concurrent sequences, ${FULL_GPU_MEM_UTIL} GPU memory utilization"
   info "Model:  $START_MODEL_DIR (raw ModelOpt NVFP4 safetensors; offline mode enforced; nothing is downloaded)"
 

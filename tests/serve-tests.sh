@@ -138,7 +138,7 @@ expect_exit 0 "$code" "help exits 0"
 section "serve: refuses startup when preflight fails"
 out="$(run_green -- start --prefix "$PFX" --model-dir "$MODEL_NO_SHARD")"; code=$?
 expect_exit 1 "$code" "missing shard blocks startup"
-expect_contains "$out" "missing required file: model-00002-of-00003.safetensors" "keeps the failure reason"
+expect_contains "$out" "index references missing shard: model-00002-of-00003.safetensors" "keeps the failure reason"
 expect_contains "$out" "preflight result: NOT READY" "preflight NOT READY boundary shown"
 expect_contains "$out" "service NOT started" "startup refused"
 
@@ -163,6 +163,7 @@ expect_contains "$out" "vllm serve" "launches the vllm CLI"
 expect_contains "$out" "--model $MODEL_OK" "reads the user model dir directly"
 expect_contains "$out" "--quantization modelopt" "fixed modelopt quantization"
 expect_contains "$out" "--kv-cache-dtype fp8" "fixed FP8 KV cache"
+expect_contains "$out" "--enable-prefix-caching" "fixed prefix caching"
 expect_contains "$out" "--host 127.0.0.1" "loopback bind by default"
 expect_contains "$out" "--served-model-name model-ok" "served name from model dir basename"
 expect_contains "$out" "--max-model-len 8192" "short context default"
@@ -206,6 +207,21 @@ expect_exit 0 "$code" "leading-zero port accepted as decimal"
 expect_contains "$out" "--port 08" "leading-zero port passed through to vllm"
 out="$(run_green -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --host ::1)"; code=$?
 expect_exit 0 "$code" "IPv6 loopback host accepted"
+
+# --lan: explicit opt-in to bind all interfaces (Windows still needs the
+# portproxy + firewall step, which the hint explains).
+out="$(run_green -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --lan)"; code=$?
+expect_exit 0 "$code" "lan mode dry-run exits 0"
+expect_contains "$out" "--host 0.0.0.0" "lan mode binds all interfaces"
+expect_contains "$out" "LAN access" "lan mode prints LAN access hint"
+
+out="$(run_green -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --lan --host 10.0.0.5)"; code=$?
+expect_exit 0 "$code" "lan mode wins over explicit --host"
+expect_contains "$out" "--host 0.0.0.0" "lan override keeps 0.0.0.0"
+
+out="$(run_green SERVE_HOST=0.0.0.0 -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --lan)"; code=$?
+expect_exit 0 "$code" "lan mode with non-loopback SERVE_HOST env exits 0"
+expect_contains "$out" "--host 0.0.0.0" "lan mode ignores the non-loopback env host"
 
 # ---------------------------------------------------------------------------
 # 4. Guardrails: no downloads, no conversion or re-quantization in the scripts
@@ -270,7 +286,7 @@ else
   expect_contains "$out" "http://127.0.0.1:$PORT/v1" "serve.sh prints the endpoint URL"
 
   log="$(cat "$VLLM_LOG" 2>/dev/null)"
-  expect_contains "$log" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 8192 --max-num-seqs 1 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --trust-remote-code" "vllm process got the exact fixed argv"
+  expect_contains "$log" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --enable-prefix-caching --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 8192 --max-num-seqs 1 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --trust-remote-code" "vllm process got the exact fixed argv"
   expect_contains "$log" "HF_HUB_OFFLINE=1" "offline mode exported to the process"
   expect_contains "$log" "TRANSFORMERS_OFFLINE=1" "transformers offline exported to the process"
   expect_contains "$log" "server-listening 127.0.0.1:$PORT model=model-ok" "server registered the served model"

@@ -7,7 +7,8 @@
 #   - reads ONLY the given local raw ModelOpt NVFP4 safetensors directory
 #     (no downloads, no GGUF/AWQ/GPTQ conversion, no re-quantization)
 #   - fixed vLLM settings: --quantization modelopt --kv-cache-dtype fp8
-#     --trust-remote-code, short context, single-request config
+#     --enable-prefix-caching --trust-remote-code, short context,
+#     single-request config
 #   - binds to 127.0.0.1 by default (loopback only; non-loopback binds are
 #     refused - the spec defers LAN/internet exposure until auth is designed)
 #   - HF_HUB_OFFLINE / TRANSFORMERS_OFFLINE are enforced for the process
@@ -23,23 +24,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
   cat <<'EOF'
 Usage:
-  serve.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--dry-run]
+  serve.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--lan] [--dry-run]
   serve.sh help
 
 Options:
   --model-dir DIR   Local folder with the raw ModelOpt NVFP4 safetensors (required).
-  --prefix DIR      Runtime directory (default: $HOME/qwen3-nvfp4-rtx5090).
+  --prefix DIR      Runtime directory (default: $HOME/vllm).
   --host IP         Bind address (default: 127.0.0.1; loopback only - other
-                    addresses are refused until the spec's auth/access-control
-                    design exists).
+                    addresses are refused unless --lan is given).
   --port N          Port (default: 8000).
+  --lan             Bind 0.0.0.0 (all interfaces) so devices on the LAN can
+                    reach the API. Windows still needs the portproxy + firewall
+                    setup (see README section '局域网访问').
   --dry-run         Print the exact vLLM command without launching it.
 
 The service only starts after the unified preflight (issue 02) passes; every
 failure prints a reason and a fix. It uses fixed vLLM settings
-(quantization=modelopt, kv-cache-dtype=fp8, trust-remote-code), reads only
-the given local model directory, and never downloads, converts or
-re-quantizes model files. Ctrl-C stops the service.
+(quantization=modelopt, kv-cache-dtype=fp8, enable-prefix-caching,
+trust-remote-code), reads only the given local model directory, and never
+downloads, converts or re-quantizes model files. Ctrl-C stops the service.
 EOF
 }
 
@@ -52,7 +55,7 @@ cmd_start() {
   esac
   DRY_RUN="$START_DRY"
 
-  section "Starting offline service (issue 03)"
+  section "Starting offline service"
   # The unified preflight (issue 02) is the only gate: refuse to start with
   # every failure reason + fix printed when it does not pass.
   if ! run_preflight "$START_PREFIX" "$START_MODEL_DIR"; then

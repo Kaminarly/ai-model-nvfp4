@@ -6,7 +6,8 @@
 # helpers here must not be reached unless run_preflight ended READY. The
 # service reads ONLY the user-supplied local ModelOpt NVFP4 safetensors
 # directory, uses fixed vLLM settings (quantization=modelopt, kv-cache-dtype
-# fp8, trust-remote-code) and binds to 127.0.0.1 by default. It never
+# fp8, enable-prefix-caching, trust-remote-code) and binds to 127.0.0.1 by
+# default. It never
 # downloads, converts or re-quantizes model files and makes no network calls.
 
 # shellcheck source=preflight-lib.sh
@@ -29,12 +30,15 @@ served_model_name() { # served_model_name <model-dir> [override]
   fi
 }
 
-# validate_bind <host> <port>: enforce the spec's loopback-only + port-range
-# contract shared by serve.sh (issue 03) and fullcontext.sh (issue 04).
-# Prints the failure reason (and fix for non-loopback binds) and returns 2;
-# callers print usage and exit.
+# validate_bind <host> <port> [allow-lan]: enforce the port-range contract
+# shared by serve.sh (issue 03), fullcontext.sh (issue 04) and direct.sh, and
+# the loopback-only default. A non-loopback bind is refused unless the caller
+# explicitly opted into LAN mode (--lan, which passes a non-empty allow-lan and
+# binds 0.0.0.0 / ::) - accidental exposure needs a deliberate flag. Prints the
+# failure reason (and fix for refused binds) and returns 2; callers print usage
+# and exit.
 validate_bind() {
-  local host="$1" port="$2" portnum
+  local host="$1" port="$2" allow_lan="${3:-}" portnum
   case "$port" in
     ''|*[!0-9]*)
       fail "invalid port: $port"
@@ -50,9 +54,29 @@ validate_bind() {
   case "$host" in
     127.0.0.1|localhost|::1) return 0 ;;
   esac
+  if [ "$allow_lan" = "1" ]; then
+    case "$host" in
+      0.0.0.0|::) return 0 ;;
+    esac
+  fi
   fail "refusing non-loopback bind address: $host"
-  info "fix: the spec keeps this service loopback-only; binding beyond loopback needs the auth/access-control design first (see spec.md Out of Scope). Use --host 127.0.0.1."
+  info "fix: without --lan the service is loopback-only by design. To expose it to the LAN run with --lan (binds 0.0.0.0; Windows still needs the portproxy+firewall setup, see README section '局域网访问' / scripts/start-api-server-lan.bat). Or use --host 127.0.0.1."
   return 2
+}
+
+# lan_hint <host> <port>: print how to reach the service from the LAN when it
+# binds beyond loopback (0.0.0.0 / ::). Loopback binds print nothing. The
+# portproxy step needs Windows admin rights; the bat launcher does it for you.
+lan_hint() {
+  local host="$1" port="$2"
+  case "$host" in
+    0.0.0.0|::)
+      info "LAN access: the service listens on all interfaces inside WSL. Devices on your LAN reach it via"
+      info "            http://<this-Windows-PC-IP>:${port}/v1   (this machine's LAN IP, e.g. 192.168.x.x)"
+      info "            Windows must forward the port first (admin): netsh interface portproxy add v4tov4 listenport=${port} listenaddress=0.0.0.0 connectport=${port} connectaddress=<wsl-ip>"
+      info "            scripts/start-api-server-lan.bat does the forwarding + firewall rule automatically."
+      ;;
+  esac
 }
 
 # prepare_vllm_env <venv>: export the environment every vLLM launch needs.
@@ -81,48 +105,89 @@ prepare_vllm_env() {
 
 # serve_argv <venv> <model-dir> <host> <port> <model-name> <max-len> <max-seqs> [util]
 # Prints the vLLM launch argv, one argument per line. Fixed settings: ModelOpt
-# NVFP4 quantization, FP8 KV cache, trust-remote-code, loopback bind. The
+# NVFP4 quantization, FP8 KV cache, prefix caching, trust-remote-code, loopback
+# bind. The
 # optional 8th argument (a GPU memory utilization float like 0.97) is emitted
 # only when given - serve.sh (issue 03) calls without it and keeps the vLLM
 # default, while the issue 04 ramp/full boots pass FULL_GPU_MEM_UTIL. No
 # conversion/re-quantization flags ever appear here.
+#
+# Optional, env-overridable extensions (empty = keep current behavior):
+#   VLLM_SPEC_METHOD   e.g. "qwen3_5_mtp" -> emits --spec-method (MTP).
+#   VLLM_SAMPLING_JSON a JSON object of default sampling params, e.g.
+#                      '{"temperature":1.0,"top_p":0.95,"top_k":20}' -> emits
+#                      --override-generation-config.<key> <value> per entry so
+#                      every request defaults to these values (vLLM 0.27.1
+#                      reads them via get_diff_sampling_param; requests that
+#                      pass the same field explicitly still override them).
+#   VLLM_EXTRA_ARGS    extra vLLM CLI args, whitespace-separated.
 serve_argv() {
-  printf '%s\n' "$1/bin/vllm" "serve" \
-    "--model" "$2" \
+  local venv="$1" model_dir="$2" host="$3" port="$4" name="$5" max_len="$6" max_seqs="$7" util="${8:-}"
+  printf '%s\n' "$venv/bin/vllm" "serve" \
+    "--model" "$model_dir" \
     "--quantization" "modelopt" \
     "--kv-cache-dtype" "fp8" \
-    "--host" "$3" "--port" "$4" \
-    "--served-model-name" "$5" \
-    "--max-model-len" "$6" "--max-num-seqs" "$7" \
+    "--enable-prefix-caching" \
+    "--host" "$host" "--port" "$port" \
+    "--served-model-name" "$name" \
+    "--max-model-len" "$max_len" "--max-num-seqs" "$max_seqs" \
     "--enable-auto-tool-choice" \
     "--tool-call-parser" "qwen3_xml" \
     "--reasoning-parser" "qwen3"
-  if [ -n "${8:-}" ]; then
-    printf '%s\n' "--gpu-memory-utilization" "$8"
+  if [ -n "$util" ]; then
+    printf '%s\n' "--gpu-memory-utilization" "$util"
+  fi
+  # Speculative decoding (e.g. MTP): --spec-method mtp. vLLM 0.27.1
+  # requires an explicit --spec-tokens when the draft config has no n_predict
+  # (MTP bootstraps from the target weights). 3 draft tokens is the chosen
+  # default here.
+  if [ -n "${VLLM_SPEC_METHOD:-}" ]; then
+    printf '%s\n' "--spec-method" "$VLLM_SPEC_METHOD"
+    printf '%s\n' "--spec-tokens" "3"
+  fi
+  # Server-side default sampling params via override-generation-config
+  # (dotted form keeps values out of a single fragile JSON argv token).
+  if [ -n "${VLLM_SAMPLING_JSON:-}" ]; then
+    if ! printf '%s' "$VLLM_SAMPLING_JSON" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null; then
+      fail "VLLM_SAMPLING_JSON is not valid JSON: $VLLM_SAMPLING_JSON"
+      return 1
+    fi
+    while IFS= read -r key; do
+      [ -n "$key" ] || continue
+      value="$(printf '%s' "$VLLM_SAMPLING_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)[sys.argv[1]])' "$key")"
+      printf '%s\n' "--override-generation-config.$key" "$value"
+    done < <(printf '%s' "$VLLM_SAMPLING_JSON" | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin).keys()))')
+  fi
+  # Free-form extra vLLM args (whitespace-separated).
+  if [ -n "${VLLM_EXTRA_ARGS:-}" ]; then
+    # shellcheck disable=SC2086
+    printf '%s\n' $VLLM_EXTRA_ARGS
   fi
   printf '%s\n' "--trust-remote-code"
 }
 
 # parse_start_options "$@": shared option parsing for the start commands of
-# serve.sh (issue 03) and fullcontext.sh (issue 04) - both accept the same
-# option set and both enforce the same loopback/port contract. On success the
-# globals START_PREFIX / START_MODEL_DIR / START_HOST / START_PORT / START_DRY
-# are set and 0 is returned; on a usage error a reason has been printed and 2
-# is returned; --help/-h returns 3 so the caller shows its own usage and
-# exits 0.
+# serve.sh (issue 03), fullcontext.sh (issue 04) and direct.sh - all accept
+# the same option set and all enforce the same loopback/port contract (--lan
+# opts out of loopback-only deliberately). On success the globals START_PREFIX
+# / START_MODEL_DIR / START_HOST / START_PORT / START_LAN / START_DRY are set
+# and 0 is returned; on a usage error a reason has been printed and 2 is
+# returned; --help/-h returns 3 so the caller shows its own usage and exits 0.
 START_PREFIX=""
 START_MODEL_DIR=""
 START_HOST=""
 START_PORT=""
+START_LAN=0
 START_DRY=0
 parse_start_options() {
-  local prefix="" model_dir="" host="" port="" dry=0
+  local prefix="" model_dir="" host="" port="" lan=0 dry=0
   while [ $# -gt 0 ]; do
     case "$1" in
       --prefix) prefix="${2:-}"; [ -n "$prefix" ] || { fail "--prefix needs a value"; return 2; }; shift 2 ;;
       --model-dir) model_dir="${2:-}"; [ -n "$model_dir" ] || { fail "--model-dir needs a value"; return 2; }; shift 2 ;;
       --host) host="${2:-}"; [ -n "$host" ] || { fail "--host needs a value"; return 2; }; shift 2 ;;
       --port) port="${2:-}"; [ -n "$port" ] || { fail "--port needs a value"; return 2; }; shift 2 ;;
+      --lan) lan=1; shift ;;
       --dry-run) dry=1; shift ;;
       --help|-h) return 3 ;;
       *) fail "unknown option: $1"; return 2 ;;
@@ -131,7 +196,12 @@ parse_start_options() {
   [ -n "$prefix" ] || prefix="$WSL2_ENV_PREFIX"
   host="${host:-$SERVE_HOST}"
   port="${port:-$SERVE_PORT}"
-  if ! validate_bind "$host" "$port"; then
+  # LAN mode binds every interface inside WSL (0.0.0.0); the Windows-side
+  # portproxy + firewall rule is a separate step (lan_hint / the bat launcher).
+  if [ "$lan" -eq 1 ]; then
+    host="0.0.0.0"
+  fi
+  if ! validate_bind "$host" "$port" "$lan"; then
     return 2
   fi
   if [ -z "$model_dir" ]; then
@@ -146,6 +216,7 @@ parse_start_options() {
   START_MODEL_DIR="$model_dir"
   START_HOST="$host"
   START_PORT="$port"
+  START_LAN="$lan"
   START_DRY="$dry"
   return 0
 }
@@ -172,15 +243,16 @@ run_offline_serve() {
   # (MAX_JOBS=1, tvm_ffi link flag) must be visible to the vllm process.
   prepare_vllm_env "$venv"
 
-  section "Offline vLLM service (issue 03)"
+  section "Offline vLLM service"
   info "Model:       $model_dir (raw ModelOpt NVFP4 safetensors)"
   info "OpenAI API:  http://$host:$port/v1"
   info "Models list: http://$host:$port/v1/models"
-  info "Settings:    quantization=modelopt, kv-cache-dtype=fp8, context=$max_len, max-num-seqs=$max_seqs"
+  info "Settings:    quantization=modelopt, kv-cache-dtype=fp8, enable-prefix-caching, context=$max_len, max-num-seqs=$max_seqs"
   info "Offline:     HF_HUB_OFFLINE=$HF_HUB_OFFLINE TRANSFORMERS_OFFLINE=$TRANSFORMERS_OFFLINE"
   [ -z "${CUDA_HOME:-}" ] || info "CUDA_HOME:   $CUDA_HOME (venv CUDA tree for FlashInfer/deep-gemm JIT)"
   info "JIT build:  MAX_JOBS=$MAX_JOBS (serialized FlashInfer ninja; avoids WSL RAM OOM)"
   [ -z "${FLASHINFER_EXTRA_LDFLAGS:-}" ] || info "JIT link:    FLASHINFER_EXTRA_LDFLAGS=$FLASHINFER_EXTRA_LDFLAGS (tvm_ffi + cu13 lib64 for FlashInfer JIT link)"
+  lan_hint "$host" "$port"
 
   local -a ARGS=()
   while IFS= read -r arg; do ARGS+=("$arg"); done < <(serve_argv "$venv" "$model_dir" "$host" "$port" "$name" "$max_len" "$max_seqs")

@@ -108,7 +108,7 @@ suggest_lower_configs() {
     info "     FULL_MAX_MODEL_LEN=131072 FULL_MAX_NUM_SEQS=8  FULL_GPU_MEM_UTIL=0.90 bash scripts/fullcontext.sh start --model-dir DIR"
     info "     FULL_MAX_MODEL_LEN=65536  FULL_MAX_NUM_SEQS=4  FULL_GPU_MEM_UTIL=0.85 bash scripts/fullcontext.sh start --model-dir DIR"
   fi
-  info "     (shorten the ramp with CONTEXT_LADDER, e.g. CONTEXT_LADDER=\"65536 131072\"; the short service from issue 03 always remains available)"
+  info "     (shorten the ramp with CONTEXT_LADDER, e.g. CONTEXT_LADDER=\"65536 131072\"; the short service always remains available)"
 }
 
 # check_full_vram: gate before any full-context boot. The preflight already
@@ -383,7 +383,7 @@ run_smoke() {
   len="$SHORT_MAX_MODEL_LEN"
   seqs="$SHORT_MAX_NUM_SEQS"
   log="$prefix/logs/fullcontext-smoke.log"
-  step_section "short-context smoke test (issue 03 config, ${len} tokens)"
+  step_section "short-context smoke test (${len} tokens)"
   info "Model: $model_dir (raw ModelOpt NVFP4 safetensors); offline enforced"
   boot_vllm_background "$prefix" "$model_dir" "$host" "$port" "$len" "$seqs" "$log" || return 1
   pid="$BOOT_PID"
@@ -545,6 +545,7 @@ run_full() {
   confirm_vram
   ok "full-context configuration verified and enabled"
   ok "full-context service is running: http://$host:$port/v1 (Ctrl-C to stop)"
+  lan_hint "$host" "$port"
 
   # The verified instance IS the foreground service now: wait until the user
   # stops it. (Under Git Bash a fake vLLM may have exec'd a native process, so
@@ -563,15 +564,16 @@ run_fullcontext_validation() {
   local mname rc n_ladder
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    section "Full-context validation plan (issue 04, dry-run)"
+    section "Full-context validation plan (dry-run)"
     info "After preflight READY and the full-config VRAM gate, the validation would boot, verify and stop:"
-    plan_step "short-context smoke test (issue 03 config)" "$prefix" "$model_dir" "$host" "$port" "$SHORT_MAX_MODEL_LEN" "$SHORT_MAX_NUM_SEQS"
+    plan_step "short-context smoke test" "$prefix" "$model_dir" "$host" "$port" "$SHORT_MAX_MODEL_LEN" "$SHORT_MAX_NUM_SEQS"
     info "plan: boundary probe - an over-limit prompt (${SMOKE_OVERFLOW_BYTES} bytes > ${SHORT_MAX_MODEL_LEN} tokens) must be rejected with a 4xx error"
     for len in $CONTEXT_LADDER; do
       plan_step "ramp step" "$prefix" "$model_dir" "$host" "$port" "$len" "1"
     done
     plan_step "full configuration (stays running)" "$prefix" "$model_dir" "$host" "$port" "$FULL_MAX_MODEL_LEN" "$FULL_MAX_NUM_SEQS"
     info "plan: verify effective context via /v1/models, ${CONCURRENT_PROOF} concurrent requests, a long in-bound request (${LONG_PROOF_BYTES} bytes), the over-boundary error (${FULL_OVERFLOW_BYTES} bytes), and the VRAM utilization target"
+    lan_hint "$host" "$port"
     return 0
   fi
 
@@ -581,7 +583,7 @@ run_fullcontext_validation() {
 
   if ! run_smoke "$prefix" "$model_dir" "$host" "$port"; then
     fail "full-context NOT started: the short-context smoke test did not pass."
-    info "fix: re-run the issue 03 short service (scripts/serve.sh start) to confirm the environment, then retry."
+    info "fix: re-run the short service (scripts/serve.sh start) to confirm the environment, then retry."
     return 1
   fi
   if ! run_ramp "$prefix" "$model_dir" "$host" "$port" "$mname"; then

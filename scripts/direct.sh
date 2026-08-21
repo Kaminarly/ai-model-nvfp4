@@ -33,16 +33,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
   cat <<'EOF'
 Usage:
-  direct.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--dry-run]
+  direct.sh start --model-dir DIR [--prefix DIR] [--host IP] [--port N] [--lan] [--dry-run]
   direct.sh help
 
 Options:
   --model-dir DIR   Local folder with the raw ModelOpt NVFP4 safetensors (required).
-  --prefix DIR      Runtime directory (default: $HOME/qwen3-nvfp4-rtx5090).
+  --prefix DIR      Runtime directory (default: $HOME/vllm).
   --host IP         Bind address (default: 127.0.0.1; loopback only - other
-                    addresses are refused until the spec's auth/access-control
-                    design exists).
+                    addresses are refused unless --lan is given).
   --port N          Port (default: 8192; overridable with SERVE_PORT).
+  --lan             Bind 0.0.0.0 (all interfaces) so devices on the LAN can
+                    reach the API. Windows still needs the portproxy + firewall
+                    setup - scripts/start-api-server-lan.bat does it all
+                    (see README section '局域网访问').
   --dry-run         Print the plan (preflight + VRAM gate note + exact vLLM
                     command) without launching anything.
 
@@ -87,6 +90,7 @@ cmd_start() {
   if [ "$DRY_RUN" -eq 1 ]; then
     info "dry-run: the full-config VRAM gate would require free >= $FULL_GPU_MEM_UTIL * GPU total"
     info "no validation steps run in direct mode: the service just boots after the gates"
+    lan_hint "$START_HOST" "$START_PORT"
     local venv mname
     venv="$START_PREFIX/venv"
     mname="$(served_model_name "$START_MODEL_DIR")"
@@ -116,7 +120,8 @@ run_direct() {
   boot_vllm_background "$prefix" "$model_dir" "$host" "$port" "$len" "$seqs" "" || return 1
   local pid="$BOOT_PID"
   ok "service booting: http://$host:$port/v1 (models list: http://$host:$port/v1/models)"
-  info "Settings: quantization=modelopt, kv-cache-dtype=fp8, context=$len, max-num-seqs=$seqs, gpu-memory-utilization=$FULL_GPU_MEM_UTIL"
+  lan_hint "$host" "$port"
+  info "Settings: quantization=modelopt, kv-cache-dtype=fp8, enable-prefix-caching, context=$len, max-num-seqs=$seqs, gpu-memory-utilization=$FULL_GPU_MEM_UTIL"
   info "Ctrl-C to stop"
   trap 'kill -TERM "$pid" 2>/dev/null' INT TERM
   wait "$pid" 2>/dev/null || true

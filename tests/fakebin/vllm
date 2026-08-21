@@ -98,7 +98,7 @@ fi
 # Mimic vLLM boot lines so the serve.sh / fullcontext.sh output looks like a
 # real launch.
 echo "INFO 01-01 00:00:00 engine.py:100] Initializing an LLM engine (vllm ${FAKE_VLLM_VERSION:-0.27.1})"
-echo "INFO 01-01 00:00:00 engine.py:100] Loaded model '$model' (quantization: modelopt, kv-cache-dtype: fp8)"
+echo "INFO 01-01 00:00:00 engine.py:100] Loaded model '$model' (quantization: modelopt, kv-cache-dtype: fp8, enable-prefix-caching: true)"
 echo "INFO 01-01 00:00:00 server.py:200] Uvicorn running on http://$host:$port"
 echo "INFO 01-01 00:00:00 server.py:200] Application startup complete."
 

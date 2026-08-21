@@ -169,13 +169,17 @@ out="$(run_green -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --ho
 expect_exit 2 "$code" "non-loopback host refused"
 expect_contains "$out" "refusing non-loopback bind address" "non-loopback bind rejected"
 
+out="$(run_green -- start --dry-run --prefix "$PFX" --model-dir "$MODEL_OK" --lan)"; code=$?
+expect_exit 0 "$code" "lan mode dry-run exits 0"
+expect_contains "$out" "--host 0.0.0.0" "lan mode binds all interfaces"
+
 # ---------------------------------------------------------------------------
 # 2. Preflight gate: full config refuses to start when preflight fails
 # ---------------------------------------------------------------------------
 section "fullcontext: refuses startup when preflight fails"
 out="$(run_green -- start --prefix "$PFX" --model-dir "$MODEL_NO_SHARD")"; code=$?
 expect_exit 1 "$code" "missing shard blocks startup"
-expect_contains "$out" "missing required file: model-00002-of-00003.safetensors" "keeps the failure reason"
+expect_contains "$out" "index references missing shard: model-00002-of-00003.safetensors" "keeps the failure reason"
 expect_contains "$out" "preflight result: NOT READY" "preflight NOT READY boundary shown"
 expect_contains "$out" "full-context service NOT started" "startup refused"
 
@@ -217,6 +221,7 @@ expect_contains "$out" "--gpu-memory-utilization 0.97" "full config plans 0.97 u
 expect_contains "$out" "boundary probe" "over-boundary probe planned"
 expect_contains "$out" "--quantization modelopt" "fixed modelopt quantization"
 expect_contains "$out" "--kv-cache-dtype fp8" "fixed FP8 KV cache"
+expect_contains "$out" "--enable-prefix-caching" "fixed prefix caching"
 expect_contains "$out" "--trust-remote-code" "trust remote code set"
 expect_contains "$out" "HF_HUB_OFFLINE=1" "offline env reported"
 expect_contains "$out" "MAX_JOBS=1" "FlashInfer ninja build serialized"
@@ -345,7 +350,7 @@ else
   expect_contains "$out" "full-context service is running" "service left running"
 
   # Per-port argv logs: smoke, each ramp step, full config.
-  expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 262144 --max-num-seqs 16 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --gpu-memory-utilization 0.97 --trust-remote-code" "full instance got the exact fixed argv"
+  expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "argv-line serve --model $MODEL_OK --quantization modelopt --kv-cache-dtype fp8 --enable-prefix-caching --host 127.0.0.1 --port $PORT --served-model-name model-ok --max-model-len 262144 --max-num-seqs 16 --enable-auto-tool-choice --tool-call-parser qwen3_xml --reasoning-parser qwen3 --gpu-memory-utilization 0.97 --trust-remote-code" "full instance got the exact fixed argv"
   expect_contains "$(cat "$ARGV_DIR/argv-$PORT.log" 2>/dev/null)" "HF_HUB_OFFLINE=1" "offline mode exported to the final process"
 
   # Diagnostics: if the green path failed, show the launcher output tail and
