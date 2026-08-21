@@ -1,16 +1,26 @@
 @echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions
-title Qwen3.8-27B API Server (direct.sh)
+title Qwen3.8-27B API Server (direct.sh + MTP, 180k)
 
 rem =====================================================================
-rem  start-api-server.bat - double-click Windows launcher for
-rem  scripts/direct.sh: runs the same preflight + VRAM gate + direct vLLM
-rem  boot inside WSL2 Ubuntu and keeps the service in THIS console window
-rem  (Ctrl-C stops it). After the server stops it runs "wsl --shutdown" to
-rem  fully shut down the WSL VM and release its GPU VRAM. Accepts the same
-rem  options as direct.sh; without
-rem  --model-dir it uses the default model folder below.
+rem  start-api-server-mtp.bat - double-click Windows launcher for
+rem  scripts/direct.sh with MTP enabled and the context set to 180k.
+rem  Everything else is identical to start-api-server.bat: it runs the
+rem  same preflight + VRAM gate + direct vLLM boot inside WSL2 Ubuntu and
+rem  keeps the service in THIS console window (Ctrl-C stops it). After the
+rem  server stops it runs "wsl --shutdown" to fully shut down the WSL VM
+rem  and release its GPU VRAM. Accepts the same options as direct.sh;
+rem  without --model-dir it uses the default model folder below.
+rem
+rem  Differences from start-api-server.bat:
+rem    - MTP on:            VLLM_SPEC_METHOD=mtp
+rem    - default sampling:  VLLM_SAMPLING_JSON={temperature:1.0, top_p:0.95,
+rem                         top_k:20, min_p:0.0, presence_penalty:0.0,
+rem                         repetition_penalty:1.0}
+rem    - context:           180000 default (FULL_MAX_MODEL_LEN overrides)
+rem    - spec tokens 3:     --spec-tokens 3 (set in scripts/lib/serve-lib.sh)
+rem    - port 8192:         same as start-api-server.bat
 rem
 rem  Before the service starts, this launcher asks whether to enable LAN
 rem  access: 1 enable / 2 disable (default) / 0 quit. Enable does the same
@@ -21,15 +31,13 @@ rem
 rem  Overridable environment variables:
 rem    MODEL_DIR   WSL path of the model folder (default below)
 rem    WSL_DISTRO  WSL distribution name (default Ubuntu)
-rem    VLLM_SPEC_METHOD   e.g. qwen3_5_mtp to enable MTP speculative decoding
-rem                       (passed to vLLM as --spec-method)
-rem    VLLM_SAMPLING_JSON JSON of server-side default sampling params,
-rem                       default {"temperature":1.0,"top_p":0.95,"top_k":20,
-rem                       "min_p":0.0,"presence_penalty":0.0,
-rem                       "repetition_penalty":1.0} (passed to vLLM as
-rem                       --override-generation-config.*; requests that pass
-rem                       the same field override it)
-rem    VLLM_EXTRA_ARGS   extra vLLM CLI args (whitespace-separated)
+rem    VLLM_SPEC_METHOD   MTP / speculative method (default mtp)
+rem    VLLM_SAMPLING_JSON server-side default sampling params JSON
+rem    VLLM_EXTRA_ARGS    extra vLLM CLI args (whitespace-separated)
+rem    FULL_MAX_MODEL_LEN context length (default 180000)
+rem    FULL_GPU_MEM_UTIL  VRAM utilization (direct.sh default 0.90)
+rem    FULL_MAX_NUM_SEQS  max concurrent sequences (direct.sh default 16)
+rem    SERVE_PORT         port (default 8192, same as start-api-server.bat)
 rem =====================================================================
 
 rem --- defaults (edit here or set the env vars above) ---
@@ -37,8 +45,9 @@ rem This launcher always serves the default model below (no model picker);
 rem override it with MODEL_DIR or --model-dir for a different checkpoint.
 if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
 if not defined WSL_DISTRO set "WSL_DISTRO=Ubuntu"
+if not defined VLLM_SPEC_METHOD set "VLLM_SPEC_METHOD=mtp"
 if not defined VLLM_SAMPLING_JSON set "VLLM_SAMPLING_JSON={"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0}"
-if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=200000"
+if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=180000"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
 
 rem --- LAN menu (before the service starts) ---
@@ -175,16 +184,16 @@ echo Starting the Qwen3.8-27B API server via WSL (%WSL_DISTRO%)...
 echo   launcher: %DIRECT_SH%
 echo   model   : %MODEL_DIR%
 echo   options : %LAN_FLAG% %ARGS%
-echo   port    : %SERVE_PORT%
+if defined VLLM_SPEC_METHOD echo   MTP     : %VLLM_SPEC_METHOD%
+if defined VLLM_SAMPLING_JSON echo   sampling: %VLLM_SAMPLING_JSON%
+if defined FULL_MAX_MODEL_LEN echo   context : %FULL_MAX_MODEL_LEN%
+if defined SERVE_PORT echo   port    : %SERVE_PORT%
 if defined ENABLE_LAN goto print_lan_on
 echo   LAN     : off (loopback only)
 goto print_lan_done
 :print_lan_on
 echo   LAN     : on  (binds 0.0.0.0; no auth - trusted network only)
 :print_lan_done
-if defined VLLM_SPEC_METHOD echo   MTP     : %VLLM_SPEC_METHOD%
-if defined VLLM_SAMPLING_JSON echo   sampling: %VLLM_SAMPLING_JSON%
-if defined VLLM_EXTRA_ARGS echo   extra   : %VLLM_EXTRA_ARGS%
 echo.
 
 if not defined ENABLE_LAN goto start_server
