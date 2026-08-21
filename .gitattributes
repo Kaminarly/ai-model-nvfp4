@@ -1,0 +1,9 @@
+# Line endings are load-bearing in this repo:
+# - Windows batch files must be CRLF: cmd.exe mis-parses LF-only scripts
+#   (512-byte read boundaries) and a UTF-8 BOM silently disables @echo off.
+# - Shell scripts must be LF: bash chokes on CRLF (CR treated as part of
+#   the command), and they are invoked from .bat launchers via WSL.
+*.bat text eol=crlf
+*.sh  text eol=lf
+# sh-style test fixture without a .sh extension
+/tests/fakebin/vllm text eol=lf
