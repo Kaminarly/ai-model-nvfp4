@@ -7,6 +7,7 @@ rem =====================================================================
 rem  start-api-server-gguf.bat - double-click Windows launcher for the
 rem  llama.cpp llama-server running the GGUF model:
 rem    Qwen3.6-27B-Fable-Fus-711-UnHeretic-NM-DAU-NEO-MAX-NEO-Q5_K_M.gguf
+rem    (+ mmproj-BF16.gguf, the vision projector, wired in via --mmproj)
 rem  with the settings verified on this machine (RTX 5090):
 rem    - context 128000, KV cache quantized to q8_0
 rem    - concurrent slots auto, 8 CPU threads, full GPU offload
@@ -103,7 +104,7 @@ rem --- llama-server launcher inside WSL (fixed location) ---
 set "LLAMA_SH=/home/kami/llama.cpp/llama-server.sh"
 
 rem --- the tuned llama-server arguments (see header) ---
-set "LLAMA_ARGS=-m %MODEL_GGUF% -c %LLAMA_CTX% -ctk q8_0 -ctv q8_0 -t 8 --temp 0.7 --top-k 20 --top-p 0.8 --min-p 0 --repeat-penalty 1.0 --presence-penalty 1.5 --reasoning off --alias Qwen3.6-27B-Fable-Fusion --port %LLAMA_PORT%"
+set "LLAMA_ARGS=-m %MODEL_GGUF% -c %LLAMA_CTX% -ctk q8_0 -ctv q8_0 -t 8 --temp 0.7 --top-k 20 --top-p 0.8 --min-p 0 --repeat-penalty 1.0 --presence-penalty 1.5 --reasoning off --mmproj /home/kami/models/Qwen3.6-27B-Fable-Fus-711-UnHeretic-NM-DAU-NEO-MAX-NEO/mmproj-BF16.gguf --alias Qwen3.6-27B-Fable-Fusion --port %LLAMA_PORT%"
 rem llama-server.sh hard-codes --host 127.0.0.1 then appends "$@"; a later
 rem --host 0.0.0.0 overrides it (llama.cpp last-write-wins).
 if defined ENABLE_LAN set "LLAMA_ARGS=%LLAMA_ARGS% --host 0.0.0.0"
