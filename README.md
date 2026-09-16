@@ -199,6 +199,21 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 可覆盖的环境变量：`MODEL_GGUF`（GGUF 文件 WSL 路径）、`LLAMA_PORT`、`LLAMA_CTX`、`WSL_DISTRO`。想手动改参数启动，用 WSL 里的 `~/llama.cpp/llama-server.sh`（详见其文件头注释）。
 
+### 4.8 用 SGLang + DSpark 跑投机解码（start-api-server-dspark.bat，可选）
+
+上面几节都是 vLLM 路线（GGUF 那节走 llama.cpp）。同样的 NVFP4 权重还能用模型作者认证的 **SGLang 镜像 + DSpark 投机解码**来跑：同一引擎下解码吞吐从 85.75 升到 154.12 tok/s（**1.80×**，本机实测，见 `result/qwen38-nvfp4-dspark-upgrade-result.md`），代价是显存多占约 340 MiB。双击 `scripts/start-api-server-dspark.bat` 即按本机实测参数启动：
+
+- **引擎/镜像**：SGLang，镜像 `lmsysorg/sglang:qwen38-27b`（作者为 Qwen3.8 定制编译的 CUDA 13 镜像，约 18 GB），跑在 Docker 里；
+- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`（主模型）与 `/home/kami/models/Qwen3.8-27B-DSpark-NVFP4`（草稿模型），两个目录都以只读方式挂进容器，容器内不做任何下载。模型 ID 通过 `--served-model-name` 别名为 **`Qwen3.8-27B-NVFP4-DSpark`**，客户端请求里的 `model` 字段用它（不是容器内挂载路径）；
+- **参数**（本机实测）：上下文 **163840**、`--speculative-dspark-block-size 7`、KV 缓存 fp8_e4m3、`mem-fraction-static 0.90`、单请求（`max-running-requests 1`）。**200k 上下文在 32 GB 显存上放不下**：实测 KV 池在 0.86 时上限 136743 token、0.90 时 166793 token（153k 输入实跑 55 秒正常返回），超限时引擎在入队阶段就返回 400、不是 OOM；不要与 `start-api-server.bat` / `-mtp` / `-gguf` 同时启动（共用 8192，且显存只够一个引擎）；
+- **多模态**：该 checkpoint 自带 Qwen3.5 视觉塔，SGLang 默认启用，已实测图片输入正常理解（`image_tokens` 计入 usage），无需额外参数；
+- **端口 8192（固定）**：与 vLLM / GGUF 那条线同端口，客户端可以只配一个 endpoint 在两条引擎线之间切换；
+- **默认仅本机**：启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）。容器内部本来就绑 `0.0.0.0`，决定别的设备能否访问的是 Windows 侧的端口转发 + 防火墙，选 `1` 时由脚本自动配置并在退出时清理。
+
+**这个启动器前台运行、不带自动重启**：窗口里的日志就是服务状态（加载完成会打印 `The server is fired up and ready to roll!`），**Ctrl+C 停止服务**，窗口关掉服务就结束。原因在 WSL 的行为：最后一个会话一结束，WSL 就把整个发行版关掉（日志里的 `InitTerminateInstanceInternal ... reboot(RB_POWER_OFF)`），容器无论怎么启动都会随之被杀；而 `--restart` 策略只会把它变成"发行版每次启动就重新加载、加载到一半又被杀"的循环。开着窗口就是保活，Ctrl+C 就是停止按钮。
+
+可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SGLANG_IMAGE`、`SGLANG_NAME`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sglang-dspark.sh`（例如 `--context-length 65536`、`--no-spec` 关掉投机做对照、`--dry-run` 只打印命令不启动）。服务停止后容器会保留（没有用 `--rm`），可用 `wsl -d Ubuntu -u root -- docker logs qwen38-sglang` 回看日志。
+
 ---
 
 ## 5. 启动成功后：在 Windows 上调用模型服务
