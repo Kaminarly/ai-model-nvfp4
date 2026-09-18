@@ -1,26 +1,43 @@
 @echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions
-title Qwen3.8-27B API Server (direct.sh + MTP, 180k)
+title Qwen3.8-27B API Server (MTP - UNAVAILABLE for the default model)
 
+rem =====================================================================
+rem  !! MTP IS GONE - DO NOT USE THIS LAUNCHER ON THE DEFAULT CHECKPOINT !!
+rem
+rem  The default model lost its MTP head in the 2026-09-16 checkpoint
+rem  update, verified against the files on disk:
+rem    - config.json -> text_config.mtp_num_hidden_layers = 0  (was 1)
+rem    - 0 of 2387 tensors in the two safetensors shards are named "mtp.*"
+rem      (index and raw safetensors headers agree; hf_quant_config.json no
+rem      longer carries any mtp exclusion either)
+rem  vLLM builds the MTP draft head from that config, so it ends up with an
+rem  empty layer list and no mtp.* weights to load: --spec-method mtp cannot
+rem  work on these weights. This launcher is kept only as a reference for a
+rem  checkpoint that does have an MTP head.
+rem
+rem  Use instead:
+rem    - start-api-server-dspark.bat  SGLang + DSpark speculative decoding
+rem    - start-api-server-vllm.bat    plain vLLM, no speculative decoding
 rem =====================================================================
 rem  start-api-server-mtp.bat - double-click Windows launcher for
 rem  scripts/direct.sh with MTP enabled and the context set to 180k.
-rem  Everything else is identical to start-api-server.bat: it runs the
+rem  Everything else is identical to start-api-server-vllm.bat: it runs the
 rem  same preflight + VRAM gate + direct vLLM boot inside WSL2 Ubuntu and
 rem  keeps the service in THIS console window (Ctrl-C stops it). After the
 rem  server stops it runs "wsl --shutdown" to fully shut down the WSL VM
 rem  and release its GPU VRAM. Accepts the same options as direct.sh;
 rem  without --model-dir it uses the default model folder below.
 rem
-rem  Differences from start-api-server.bat:
+rem  Differences from start-api-server-vllm.bat:
 rem    - MTP on:            VLLM_SPEC_METHOD=mtp
 rem    - default sampling:  VLLM_SAMPLING_JSON={temperature:1.0, top_p:0.95,
 rem                         top_k:20, min_p:0.0, presence_penalty:0.0,
 rem                         repetition_penalty:1.0}
 rem    - context:           180000 default (FULL_MAX_MODEL_LEN overrides)
 rem    - spec tokens 3:     --spec-tokens 3 (set in scripts/lib/serve-lib.sh)
-rem    - port 8192:         same as start-api-server.bat
+rem    - port 8192:         same as start-api-server-vllm.bat
 rem
 rem  Before the service starts, this launcher asks whether to enable LAN
 rem  access: 1 enable / 2 disable (default) / 0 quit. Enable does the same
@@ -37,7 +54,7 @@ rem    VLLM_EXTRA_ARGS    extra vLLM CLI args (whitespace-separated)
 rem    FULL_MAX_MODEL_LEN context length (default 180000)
 rem    FULL_GPU_MEM_UTIL  VRAM utilization (direct.sh default 0.90)
 rem    FULL_MAX_NUM_SEQS  max concurrent sequences (direct.sh default 16)
-rem    SERVE_PORT         port (default 8192, same as start-api-server.bat)
+rem    SERVE_PORT         port (default 8192, same as start-api-server-vllm.bat)
 rem =====================================================================
 
 rem --- defaults (edit here or set the env vars above) ---
@@ -49,6 +66,15 @@ if not defined VLLM_SPEC_METHOD set "VLLM_SPEC_METHOD=mtp"
 if not defined VLLM_SAMPLING_JSON set "VLLM_SAMPLING_JSON={"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0}"
 if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=180000"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
+
+rem --- runtime warning: this route is dead on the default checkpoint ---
+echo.
+echo WARNING: MTP is unavailable for the default model. The 2026-09-16
+echo          checkpoint has mtp_num_hidden_layers = 0 and zero mtp.* tensors,
+echo          so --spec-method mtp cannot start on it.
+echo          For speculative decoding use start-api-server-dspark.bat,
+echo          for plain vLLM use start-api-server-vllm.bat. See README 4.6.
+echo.
 
 rem --- LAN menu (before the service starts) ---
 rem --lan-enabled is internal: the elevated copy skips the menu.
