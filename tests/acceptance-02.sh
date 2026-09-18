@@ -9,7 +9,7 @@ set -u
 
 PREFLIGHT="/mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/preflight.sh"
 FAKEBIN="/mnt/d/Code/MJ-Project/ai-model-nvfp4/tests/fakebin"
-MODEL="/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
+MODEL="/home/kami/models/Qwen3.8-27B-NVFP4-VLLM"
 TMP="/tmp/accept02"
 
 PASS=0

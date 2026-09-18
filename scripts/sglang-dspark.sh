@@ -19,8 +19,8 @@
 # Usage (inside WSL2 Ubuntu; needs root because user kami is not in the docker
 # group on this machine):
 #   sudo bash scripts/sglang-dspark.sh start \
-#     --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090 \
-#     --draft-dir /home/kami/models/Qwen3.8-27B-DSpark-NVFP4
+#     --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-DSpark \
+#     --draft-dir /home/kami/models/Qwen3.8-27B-DSpark-Acc
 #
 # NOTE (2026-09-19): the image is no longer present on this machine - it was
 # deleted to free 41.9 GB of docker disk (digest
@@ -36,8 +36,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/wsl2-env-lib.sh
 . "$SCRIPT_DIR/lib/wsl2-env-lib.sh"
 
-DEFAULT_MODEL_DIR="/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
-DEFAULT_DRAFT_DIR="/home/kami/models/Qwen3.8-27B-DSpark-NVFP4"
+DEFAULT_MODEL_DIR="/home/kami/models/Qwen3.8-27B-NVFP4-DSpark"
+DEFAULT_DRAFT_DIR="/home/kami/models/Qwen3.8-27B-DSpark-Acc"
 IMAGE="${SGLANG_IMAGE:-lmsysorg/sglang:qwen38-27b}"
 NAME="${SGLANG_NAME:-qwen38-sglang}"
 PORT="${SERVE_PORT:-8192}"

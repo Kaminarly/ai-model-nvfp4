@@ -14,7 +14,7 @@
 #   - HF_HUB_OFFLINE / TRANSFORMERS_OFFLINE are enforced for the process
 #
 # Usage (inside WSL2 Ubuntu), e.g.:
-#   bash scripts/serve.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+#   bash scripts/serve.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

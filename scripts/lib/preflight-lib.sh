@@ -36,7 +36,7 @@ check_model_path() { # check_model_path <model-dir>
   check_start model-path "model directory valid: $dir"
   if [ -z "$dir" ]; then
     check_fail "no --model-dir given" "model integrity cannot be checked without a directory." \
-      "Pass --model-dir <absolute path to the model folder>, e.g. --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
+      "Pass --model-dir <absolute path to the model folder>, e.g. --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM"
     return 1
   fi
   if [ ! -d "$dir" ]; then
@@ -59,7 +59,7 @@ check_model_files() { # check_model_files <model-dir>
     n=$((n + 1))
     if [ ! -f "$dir/$f" ]; then
       check_fail "missing required file: $f" "the model card publishes $f; vLLM needs it to boot." \
-        "Copy the complete model folder into place (never downloaded by this project); see the model card file list, e.g. rsync -a host:Qwen3.8-27B-NVFP4-RTX5090/ \"$dir/\""
+        "Copy the complete model folder into place (never downloaded by this project); see the model card file list, e.g. rsync -a host:Qwen3.8-27B-NVFP4-VLLM/ \"$dir/\""
       return 1
     fi
     if [ ! -s "$dir/$f" ]; then

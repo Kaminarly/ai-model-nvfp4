@@ -69,7 +69,7 @@ exit /b 1
 :admin_ok
 
 rem --- defaults (edit here or set the env vars above) ---
-if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
+if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-VLLM"
 if not defined WSL_DISTRO set "WSL_DISTRO=Ubuntu"
 if not defined VLLM_SAMPLING_JSON set "VLLM_SAMPLING_JSON={"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0}"
 if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=200000"

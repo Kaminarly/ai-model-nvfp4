@@ -1,24 +1,29 @@
 @echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions
-title Qwen3.8-27B API Server (MTP - UNAVAILABLE for the default model)
+title Qwen3.8-27B API Server (MTP - needs the -VLLM checkpoint)
 
 rem =====================================================================
-rem  !! MTP IS GONE - DO NOT USE THIS LAUNCHER ON THE DEFAULT CHECKPOINT !!
+rem  !! MTP NEEDS THE MTP-HEAD CHECKPOINT - THIS LAUNCHER SERVES IT BY DEFAULT !!
 rem
-rem  The default model lost its MTP head in the 2026-09-16 checkpoint
-rem  update, verified against the files on disk:
-rem    - config.json -> text_config.mtp_num_hidden_layers = 0  (was 1)
-rem    - 0 of 2387 tensors in the two safetensors shards are named "mtp.*"
-rem      (index and raw safetensors headers agree; hf_quant_config.json no
-rem      longer carries any mtp exclusion either)
-rem  vLLM builds the MTP draft head from that config, so it ends up with an
-rem  empty layer list and no mtp.* weights to load: --spec-method mtp cannot
-rem  work on these weights. This launcher is kept only as a reference for a
-rem  checkpoint that does have an MTP head.
+rem  MTP is the draft head that ships inside the pre-final weights, so this
+rem  launcher only works on /home/kami/models/Qwen3.8-27B-NVFP4-VLLM, which
+rem  is the default below. Verified against the files on disk:
+rem    - config.json -> text_config.mtp_num_hidden_layers = 1
+rem    - 15 of the 2402 indexed tensors are named "mtp.*" - 2 in shard 2 and
+rem      13 in shard 3, the pure MTP shard; index and raw safetensors
+rem      headers agree shard by shard
+rem    - hf_quant_config.json keeps the "mtp*" / "mtp.layers.0*" exclusions
+rem      that leave the MTP layers in bf16 instead of NVFP4
 rem
-rem  Use instead:
+rem  The 2026-09-16 final build dropped the head, so pointing MODEL_DIR at
+rem  /home/kami/models/Qwen3.8-27B-NVFP4-DSpark cannot work: that checkpoint
+rem  has mtp_num_hidden_layers = 0 and zero mtp.* tensors, so vLLM builds an
+rem  empty draft head and --spec-method mtp finds no weights to load.
+rem
+rem  Other routes, all on the final build:
 rem    - start-api-server-dspark.bat  SGLang + DSpark speculative decoding
+rem    - start-api-server-sparkinfer.bat  SparkInfer with DSpark in-engine
 rem    - start-api-server-vllm.bat    plain vLLM, no speculative decoding
 rem =====================================================================
 rem  start-api-server-mtp.bat - double-click Windows launcher for
@@ -60,20 +65,20 @@ rem =====================================================================
 rem --- defaults (edit here or set the env vars above) ---
 rem This launcher always serves the default model below (no model picker);
 rem override it with MODEL_DIR or --model-dir for a different checkpoint.
-if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
+if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-VLLM"
 if not defined WSL_DISTRO set "WSL_DISTRO=Ubuntu"
 if not defined VLLM_SPEC_METHOD set "VLLM_SPEC_METHOD=mtp"
 if not defined VLLM_SAMPLING_JSON set "VLLM_SAMPLING_JSON={"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0}"
 if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=180000"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
 
-rem --- runtime warning: this route is dead on the default checkpoint ---
+rem --- runtime notice: MTP needs the MTP-head checkpoint (the default) ---
 echo.
-echo WARNING: MTP is unavailable for the default model. The 2026-09-16
-echo          checkpoint has mtp_num_hidden_layers = 0 and zero mtp.* tensors,
-echo          so --spec-method mtp cannot start on it.
-echo          For speculative decoding use start-api-server-dspark.bat,
-echo          for plain vLLM use start-api-server-vllm.bat. See README 4.6.
+echo NOTE: MTP needs the pre-final checkpoint where mtp_num_hidden_layers = 1.
+echo       This launcher defaults to /home/kami/models/Qwen3.8-27B-NVFP4-VLLM.
+echo       Pointing MODEL_DIR at the final build
+echo       /home/kami/models/Qwen3.8-27B-NVFP4-DSpark will fail: that
+echo       checkpoint ships no MTP head at all. See README 4.6.
 echo.
 
 rem --- LAN menu (before the service starts) ---

@@ -40,7 +40,7 @@
 
 ## 3. 第一次使用：装环境（只做一次）
 
-> 前提：你已经把模型目录放到了 WSL 里（本项目路径为 `/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`，约 20 GB，包含 3 个权重分片 + 索引 + 配置文件）。
+> 前提：你已经把模型目录放到了 WSL 里（本项目路径为 `/home/kami/models/Qwen3.8-27B-NVFP4-VLLM`，约 20 GB，包含 3 个权重分片 + 索引 + 配置文件；本机同时还留着一份 final 构建 `/home/kami/models/Qwen3.8-27B-NVFP4-DSpark`（2 分片、无 MTP 头），两者的差别与各自用途见 4.6 节）。
 
 打开一个 **WSL 终端**（Windows 上运行 `wsl` 命令，或在 PowerShell 里用 `wsl -d Ubuntu -- ...`），依次执行三步：
 
@@ -82,7 +82,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh verify    # 3. �
 
 ```bash
 bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/direct.sh start \
-  --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+  --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 ```
 
 看到 **`preflight READY`**、**`full-config VRAM gate` 通过**和 **`service booting: http://127.0.0.1:8192/v1`** 就说明成功了。服务在前台运行，**按 `Ctrl-C` 停止**。
@@ -95,30 +95,30 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/direct.sh start \
 
 > 该启动器原名 `start-api-server.bat`，已重命名为 **`start-api-server-vllm.bat`**（行为完全不变，只为与 `-mtp` / `-gguf` / `-dspark` / `-sparkinfer` 的命名对齐）。
 
-不想开 WSL 终端的话，直接双击 `scripts/start-api-server-vllm.bat` 就能启动和上面一模一样的服务（等价于运行 `direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`）：
+不想开 WSL 终端的话，直接双击 `scripts/start-api-server-vllm.bat` 就能启动和上面一模一样的服务（等价于运行 `direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM`）：
 
 - 自动把脚本路径转成 WSL 路径并调用 `direct.sh`，服务就在弹出的窗口里前台运行，**按 `Ctrl-C` 停止**；停止后脚本会自动执行 `wsl --shutdown` 彻底关闭 WSL（释放 WSL 占用的显存，和问题 1 里推荐的释放方式一致），然后窗口停留显示结果，按任意键关闭；
-- **直接启动默认模型**（不再有模型选择菜单）：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`，上下文 200000；想换模型就在双击前设置环境变量 `MODEL_DIR`（WSL 路径），或在**命令行**里直接传参数：`start-api-server-vllm.bat --model-dir /path/to/model --port 8001`（参数与 `direct.sh` 完全一致）；
+- **直接启动默认模型**（不再有模型选择菜单）：`/home/kami/models/Qwen3.8-27B-NVFP4-VLLM`，上下文 200000；想换模型就在双击前设置环境变量 `MODEL_DIR`（WSL 路径），或在**命令行**里直接传参数：`start-api-server-vllm.bat --model-dir /path/to/model --port 8001`（参数与 `direct.sh` 完全一致）；
 - 正式启动前会问一次**局域网访问**：`1` 开启、`2` 关闭、`0` 退出；直接回车等于 `2`（只本机）。选 `1` 会弹 UAC 提权，然后完成端口转发和防火墙（见 5.0 节）；
 - 非默认 WSL 发行版可设 `WSL_DISTRO`（默认 `Ubuntu`）。
 
-**MTP 版本（已失效，不要用）**：`scripts/start-api-server-mtp.bat` 仍保留在仓库里供参考，但它依赖的 MTP 头在 **2026-09-16 的模型更新中被删除**了（`mtp_num_hidden_layers = 0`、权重里 0 个 `mtp.*` 张量，验证过程见 4.6 节），因此它启动会失败；脚本文件头和启动窗口都会打印这条警告。需要投机解码请改用 `scripts/start-api-server-dspark.bat`（SGLang + DSpark，见 4.8 节）。
+**MTP 版本（只配合带 MTP 头的 `-VLLM` 目录用）**：`scripts/start-api-server-mtp.bat` 默认就指向 `/home/kami/models/Qwen3.8-27B-NVFP4-VLLM`（pre-final 构建，`mtp_num_hidden_layers = 1`、15 个 `mtp.*` 张量），双击即可用 MTP 加速。**别把 `MODEL_DIR` 指到 `/home/kami/models/Qwen3.8-27B-NVFP4-DSpark`**——那是 2026-09-16 的 final 构建，MTP 头已被删除，指向它会启动失败（对照见 4.6 节）。
 
-**默认采样参数**：`start-api-server-vllm.bat` 内置一组服务端默认采样参数（`temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0`），作为 vLLM 的服务端默认值，请求里显式传了同名参数会覆盖它（见 5.4 节）。可用环境变量 `VLLM_SAMPLING_JSON` 覆盖整组默认值（已失效的 `-mtp` 脚本设的是同一组）。
+**默认采样参数**：`start-api-server-vllm.bat` 内置一组服务端默认采样参数（`temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0`），作为 vLLM 的服务端默认值，请求里显式传了同名参数会覆盖它（见 5.4 节）。可用环境变量 `VLLM_SAMPLING_JSON` 覆盖整组默认值（`-mtp` 脚本设的是同一组）。
 
 ### 4.3 完整长上下文验证启动（fullcontext.sh）
 
 ```bash
 FULL_GPU_MEM_UTIL=0.90 FULL_MAX_MODEL_LEN=200000 FULL_MAX_NUM_SEQS=16 CONTEXT_LADDER="200000" \
 bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
-  --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+  --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 ```
 
 看到 **`full-context configuration verified and enabled`** 和 **`full-context service is running: http://127.0.0.1:8000/v1`** 就说明成功了。服务在前台运行，**按 `Ctrl-C` 停止**。
 
 > PowerShell 完整写法（想不带参数用默认值的话，把开头的环境变量整段去掉即可）：
 > ```powershell
-> wsl -d Ubuntu -- bash -lc "FULL_GPU_MEM_UTIL=0.90 FULL_MAX_MODEL_LEN=200000 FULL_MAX_NUM_SEQS=16 CONTEXT_LADDER='200000' bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
+> wsl -d Ubuntu -- bash -lc "FULL_GPU_MEM_UTIL=0.90 FULL_MAX_MODEL_LEN=200000 FULL_MAX_NUM_SEQS=16 CONTEXT_LADDER='200000' bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM"
 > ```
 
 ### 4.4 参数是什么意思、有什么效果
@@ -144,7 +144,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
 | `SERVE_PORT` | `8000` | （direct.sh 为 `8192`）服务端口 |
 | `SHORT_MAX_MODEL_LEN` | `8192` | （serve.sh）短服务上下文 |
 | `SHORT_MAX_NUM_SEQS` | `1` | （serve.sh）短服务并发 |
-| `VLLM_SPEC_METHOD` | 空（不启用） | 启用推测解码。设 `mtp` 开启 MTP（多 token 预测），等效给 vLLM 加 `--spec-method mtp --spec-tokens 3`。`start-api-server-mtp.bat` 默认设了它——**但当前模型已无 MTP 头，这个值现在用不了**（见 4.6 节）；投机解码请走 SGLang + DSpark（4.8 节） |
+| `VLLM_SPEC_METHOD` | 空（不启用） | 启用推测解码。设 `mtp` 开启 MTP（多 token 预测），等效给 vLLM 加 `--spec-method mtp --spec-tokens 3`。`start-api-server-mtp.bat` 默认设了它——**MTP 头只在 `-VLLM` 目录（pre-final 构建）里有**，所以 `--model-dir` 必须指向那里（见 4.6 节） |
 | `VLLM_SAMPLING_JSON` | 空（vLLM 默认采样） | 服务端默认采样参数的 JSON，等效给 vLLM 加 `--override-generation-config.*`。`start-api-server-vllm.bat` 与 `-mtp` 默认设了 `{"temperature":1.0,"top_p":0.95,"top_k":20,"min_p":0.0,"presence_penalty":0.0,"repetition_penalty":1.0}` |
 | `VLLM_EXTRA_ARGS` | 空 | 额外透传给 vLLM 的命令行参数（空格分隔） |
 
@@ -164,23 +164,25 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
 
 每次启动的 vLLM 日志存在 `~/vllm/logs/`（`fullcontext-smoke.log`、`fullcontext-ramp-<长度>.log`），失败排查用得上。
 
-### 4.6 MTP（多 token 预测）：模型更新后已失效
+### 4.6 MTP（多 token 预测）：只在带 MTP 头的 `-VLLM` 目录上可用
 
-> **结论先行：现在不要用 MTP。** 2026-09-16 的模型更新删掉了 MTP 头，`--spec-method mtp` 在这份权重上无法工作（`start-api-server-mtp.bat` 也随之失效，脚本文件头与启动窗口都会警告）。需要投机解码请走 **SGLang + DSpark**（4.8 节，本机实测单流 1.80×）。本节下面保留 MTP 的原理与排障记录，供将来换成带 MTP 头的 checkpoint 时参考。
+> **结论先行：MTP 只能用 `/home/kami/models/Qwen3.8-27B-NVFP4-VLLM`。** 本机现在并存两份权重：`-VLLM` 是 pre-final 构建（`mtp_num_hidden_layers = 1`、15 个 `mtp.*` 张量），`-DSpark` 是 2026-09-16 的 final 构建（MTP 头已删除）。`--spec-method mtp` 靠权重自带的草稿头工作，所以必须指向 `-VLLM`；指向 `-DSpark` 会因"0 层 + 无权重"启动失败。`start-api-server-mtp.bat` 默认已经指向 `-VLLM`。
 
-**为什么失效（对着硬盘上的文件实测，2026-09-16 之后的权重）**：
+**两份权重的对照（对着硬盘上的文件实测）**：
 
-| 检查项 | 结果 |
-| --- | --- |
-| `config.json` → `text_config.mtp_num_hidden_layers` | **`0`**（升级前是 `1`） |
-| `model.safetensors.index.json` | 2387 个张量，`mtp.*` = **0 个** |
-| 两个 safetensors 文件头（safetensors 元数据，权威来源） | 1312 + 1075 = 2387 个张量，`mtp.*` = **0 个**；索引与文件头逐分片完全一致（无陈旧分片） |
-| `hf_quant_config.json` | 全文不含 `mtp`（升级前有"把 `mtp*` 排除在 NVFP4 量化之外、保持 bf16"的规则） |
-| vLLM 0.27.1 的行为 | `qwen3_5_mtp.py` 用 `mtp_num_hidden_layers` 决定草稿头层数 → **0 层空列表**；`load_weights` 只接收 `mtp.` 前缀的权重 → 一个都拿不到。所以 MTP 草稿头既没有结构、也没有权重 |
+| 检查项 | `-NVFP4-VLLM`（pre-final） | `-NVFP4-DSpark`（final） |
+| --- | --- | --- |
+| 目录 | `/home/kami/models/Qwen3.8-27B-NVFP4-VLLM` | `/home/kami/models/Qwen3.8-27B-NVFP4-DSpark` |
+| 权重分片 | 3 个：9.97 + 8.05 + 0.74 GB ≈ 18.77 GB | 2 个：9.97 + 7.94 GB ≈ 17.92 GB |
+| `config.json` → `text_config.mtp_num_hidden_layers` | **`1`** | **`0`** |
+| `model.safetensors.index.json` | 2402 个张量，`mtp.*` = **15 个** | 2387 个张量，`mtp.*` = **0 个** |
+| safetensors 文件头（权威来源，已与索引逐分片核对） | 1312 + 1077 + 13 = 2402 个张量，`mtp.*` = **15 个**（第 3 分片是纯 MTP 分片） | 1312 + 1075 = 2387 个张量，`mtp.*` = **0 个** |
+| `hf_quant_config.json` | 含 `mtp*` / `mtp.layers.0*` 两条排除规则（MTP 层保持 bf16，不进 NVFP4） | 全文不含 `mtp` |
+| MTP 可用性 | **可用**：`--spec-method mtp` 能建出草稿头并加载到权重 | **不可用**：`qwen3_5_mtp.py` 按 `mtp_num_hidden_layers` 建出 **0 层空列表**，`load_weights` 收不到任何 `mtp.` 权重 |
 
-**历史记录（升级前的状态与原理）**：这份模型**曾经原生支持 MTP**：`config.json` 里有 `"mtp_num_hidden_layers": 1`，权重分片也带了完整的 MTP 层（`mtp.*` 共 15 个权重键，且量化配置把 `mtp*` 排除在 NVFP4 量化之外、保持 bf16）。vLLM 0.27.1 原生支持 `--spec-method mtp`，**不需要额外草稿模型**——MTP 是模型自带的"多 token 预测"草稿头，推理时每步先草拟接下来几个 token、再一起验证，接受率高时一次前向就能多生成几个 token，**加速的是输出（decoding）阶段**，长输出收益明显。
+**MTP 是什么**：它是模型自带的"多 token 预测"草稿头——推理时每步先草拟接下来几个 token、再一起验证，接受率高时一次前向就能多生成几个 token，**加速的是输出（decoding）阶段**，长输出收益明显。vLLM 0.27.1 原生支持 `--spec-method mtp`，**不需要额外草稿模型**。两份权重的第 1 个分片是**同一个 HF 对象**（本机用硬链接共享同一 inode，只占一份盘），差别只在第 2、3 分片与 MTP 头的有无——模型卡说明这次改动"不触碰任何被计算的值"，即计算语义不变。
 
-**当时最简单的方式（现已失效，仅作参考）：双击 `scripts/start-api-server-mtp.bat`**。它与 `start-api-server-vllm.bat` 唯一的区别就是开启了 MTP 并把上下文从 200000 降到 180000（MTP 多占一些显存，留出余量），端口同为 8192。启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）。它内部通过 `direct.sh` 启动，vLLM 参数自动带上：
+**最简单的用法：双击 `scripts/start-api-server-mtp.bat`**。它默认就指向 `-VLLM`，与 `start-api-server-vllm.bat` 唯一的区别是开启了 MTP 并把上下文从 200000 降到 180000（MTP 多占一些显存，留出余量），端口同为 8192。启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）。它内部通过 `direct.sh` 启动，vLLM 参数自动带上：
 
 ```
 --spec-method mtp --spec-tokens 3
@@ -188,15 +190,15 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
 
 （`--spec-tokens 3` 是 MTP 的草稿 token 数；vLLM 0.27.1 对 MTP 必须显式给这个值，否则启动报 `num_speculative_tokens must be provided`。）
 
-**手动方式（同样只对带 MTP 头的 checkpoint 有效）**：在 `direct.sh` / `fullcontext.sh` / `serve.sh` 前设环境变量即可，无需改脚本：
+**手动方式**：在 `direct.sh` / `fullcontext.sh` / `serve.sh` 前设环境变量即可，无需改脚本（`--model-dir` 记得指向 `-VLLM`）：
 
 ```bash
-VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 ```
 
-底层 `scripts/lib/serve-lib.sh` 的 `serve_argv` 已支持三个透传环境变量（`VLLM_SPEC_METHOD` / `VLLM_SAMPLING_JSON` / `VLLM_EXTRA_ARGS`），见 4.4 节参数表。环境变量机制本身仍然可用，只是当前模型给不出 MTP 权重。
+底层 `scripts/lib/serve-lib.sh` 的 `serve_argv` 已支持三个透传环境变量（`VLLM_SPEC_METHOD` / `VLLM_SAMPLING_JSON` / `VLLM_EXTRA_ARGS`），见 4.4 节参数表。
 
-以下注意事项只对带 MTP 头的 checkpoint 有意义：
+注意事项：
 - **显存**：RTX 5090 32GB 下，NVFP4 权重约 18.8GB + FP8 KV 缓存（比 bf16 减半，这是长上下文能装下的关键）+ 前缀缓存 + MTP 层（bf16），整体放得下但余量不大。开启后若 OOM，把 `FULL_GPU_MEM_UTIL` 从 0.90 降到 0.85 再试，或关掉 MTP。
 - **MTP 与 CUDA graph**：vLLM 0.27.1 在 spec-decode + FlashInfer 下会把 CUDA graph 降级为 PIECEWISE 模式（日志会有一条警告），这是正常降级，不影响功能。
 - **`min_p` / `logit_bias` 与推测解码**：vLLM 会警告 `min_p and logit_bias parameters won't work with speculative decoding`，即 MTP 开启时服务端默认的 `min_p` 不生效（默认 0.0 本就等于不启用，无实际影响）。
@@ -218,7 +220,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 上面几节都是 vLLM 路线（GGUF 那节走 llama.cpp）。同样的 NVFP4 权重还能用模型作者认证的 **SGLang 镜像 + DSpark 投机解码**来跑：同一引擎下解码吞吐从 85.75 升到 154.12 tok/s（**1.80×**，本机实测，见 `result/qwen38-nvfp4-dspark-upgrade-result.md`），代价是显存多占约 340 MiB。双击 `scripts/start-api-server-dspark.bat` 即按本机实测参数启动：
 
 - **引擎/镜像**：SGLang，镜像 `lmsysorg/sglang:qwen38-27b`（作者为 Qwen3.8 定制编译的 CUDA 13 镜像，约 18 GB 下载 / **41.9 GB 落盘**），跑在 Docker 里。**⚠ 这个镜像已于 2026-09-19 从本机删除**（它太大，删前记录：digest `lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1`，详见 `result/sglang-image-removal-result.md`）：**这条路线现在跑不起来**，双击启动器会停在预检并提示 `pull it (about 18 GB): docker pull lmsysorg/sglang:qwen38-27b`——脚本不会自动下载，要恢复这条路线就手动执行那条 `docker pull`（想复现同一份镜像可按上面的 digest 拉）。vLLM 与 SparkInfer 两条线不受影响（已实测）；
-- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`（主模型）与 `/home/kami/models/Qwen3.8-27B-DSpark-NVFP4`（草稿模型），两个目录都以只读方式挂进容器，容器内不做任何下载。模型 ID 通过 `--served-model-name` 别名为 **`Qwen3.8-27B-NVFP4-DSpark`**，客户端请求里的 `model` 字段用它（不是容器内挂载路径）；
+- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-DSpark`（主模型）与 `/home/kami/models/Qwen3.8-27B-DSpark-Acc`（草稿模型），两个目录都以只读方式挂进容器，容器内不做任何下载。模型 ID 通过 `--served-model-name` 别名为 **`Qwen3.8-27B-NVFP4-DSpark`**，客户端请求里的 `model` 字段用它（不是容器内挂载路径）；
 - **参数**（本机实测）：上下文 **163840**、`--speculative-dspark-block-size 7`、KV 缓存 fp8_e4m3、`mem-fraction-static 0.90`、单请求（`max-running-requests 1`）。**200k 上下文在 32 GB 显存上放不下**：实测 KV 池在 0.86 时上限 136743 token、0.90 时 166793 token（153k 输入实跑 55 秒正常返回），超限时引擎在入队阶段就返回 400、不是 OOM；不要与 `start-api-server-vllm.bat` / `-mtp` / `-gguf` 同时启动（共用 8192，且显存只够一个引擎）；
 - **多模态**：该 checkpoint 自带 Qwen3.5 视觉塔，SGLang 默认启用，已实测图片输入正常理解（`image_tokens` 计入 usage），无需额外参数；
 - **端口 8192（固定）**：与 vLLM / GGUF 那条线同端口，客户端可以只配一个 endpoint 在两条引擎线之间切换；
@@ -233,7 +235,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 第三条引擎路线。**SparkInfer** 是一份原生 C++/CUDA 推理运行时（无 Python 推理栈），作者为这份 NVFP4 权重发布了官方镜像，体积只有 **1.4 GB**（对比 SGLang 镜像 41.9 GB）。同一份权重、同样只读挂载，双击 `scripts/start-api-server-sparkinfer.bat`，或在 WSL 内跑 `sudo bash scripts/sparkinfer-serve.sh start`。
 
 - **引擎/镜像**：`ghcr.io/gittensor-ai-lab/sparkinfer-qwen38:0.5.10`，**按版本固定，不要用 `latest`**（标签会漂移）。实测镜像索引 digest：`sha256:d519d6ed995cf24f4a00c224733082166cfcb56ebaefe45ff94f80e9f518bbe1`。镜像里**不含任何模型权重**，拉取只需约 1.4 GB；
-- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090` 挂到容器内 `/models/qwen38-nvfp4`，草稿 `/home/kami/models/Qwen3.8-27B-DSpark-NVFP4` 挂到 `/models/qwen38-dspark`，**两个都是 `:ro` 只读**。容器日志里**没有** `[sparkinfer] downloading` 一行，即证明权重全部来自本地挂载、没有联网下载（启动器还会额外设 `HF_HUB_OFFLINE=1`，并对两个目录做"缺文件就拒绝启动"的前置检查）；
+- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-DSpark` 挂到容器内 `/models/qwen38-nvfp4`，草稿 `/home/kami/models/Qwen3.8-27B-DSpark-Acc` 挂到 `/models/qwen38-dspark`，**两个都是 `:ro` 只读**。容器日志里**没有** `[sparkinfer] downloading` 一行，即证明权重全部来自本地挂载、没有联网下载（启动器还会额外设 `HF_HUB_OFFLINE=1`，并对两个目录做"缺文件就拒绝启动"的前置检查）；
 - **本机实测（RTX 5090、ctx 131072、前缀缓存关闭、客户端流式计时）**：单流解码 **AR 89.7 tok/s → DSpark 147.6 tok/s（1.65×）**，TTFT 中位数约 96 → 123 ms；JSON 类输出最快（实测 354 tok/s，约为 AR 的 4 倍）。上游给的区间是聊天 1.47×、JSON 3.45×、4k 上下文 4.01×，**引用区间而不是单点**；
 - **并发是这条路线最大的短板，且比预期更严重**：本机实测聚合吞吐在 1/2/4/8/16 并发下**几乎完全不涨**（AR：87.5 / 87.0 / 89.3 / 90.1 / 90.8 tok/s）。这不是"排队串行"——服务端自报 `active_requests=8`、`sum(generation_ms)/耗时 ≈ 8`，请求确实在并行处理，但每个请求的速率被等比例摊薄。**厂商模型卡"8 并发 344 tok/s"在本机没有复现**：同口径实测 8 并发 88.9 tok/s，恰好等于模型卡自己给的 1 并发数值。**因此多客户端场景继续用 vLLM，不要换到这条线**；
 - **上下文取舍（本机实测显存）**：
@@ -258,15 +260,15 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 **这个启动器前台运行、不带自动重启、也不用 `--rm`**：理由与 4.8 完全相同——WSL 会随最后一个会话回收发行版，后台容器必被杀。窗口里的日志就是服务状态（就绪标志是 `[sparkinfer-server] model ready:` 与 `[sparkinfer-server] OpenAI-compatible API on http://0.0.0.0:8080`），**Ctrl+C 停止**；容器保留，事后 `wsl -d Ubuntu -u root -- docker logs qwen38-sparkinfer` 可回看。
 
-可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SPARKINFER_IMAGE`、`SPARKINFER_NAME`、`SPARKINFER_CTX`、`SPARKINFER_MODEL_NAME`、`SPARKINFER_SAMPLING_DEFAULTS`、`SPARKINFER_KV_INT8`、`SPARKINFER_EXTRA_ARGS`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sparkinfer-serve.sh`（`--no-spec` 关掉投机做对照、`--context-length N`、`--model-name X`、`--no-download` 硬离线、`--dry-run` 只打印命令不启动）。
+可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SPARKINFER_IMAGE`、`SPARKINFER_NAME`、`SPARKINFER_CTX`、`SPARKINFER_MODEL_NAME`（默认：投机模式 `Qwen3.8-27B-NVFP4-DSpark`、`--no-spec` 模式 `Qwen3.8-27B-NVFP4`）、`SPARKINFER_SAMPLING_DEFAULTS`、`SPARKINFER_KV_INT8`、`SPARKINFER_EXTRA_ARGS`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sparkinfer-serve.sh`（`--no-spec` 关掉投机做对照、`--context-length N`、`--model-name X`、`--no-download` 硬离线、`--dry-run` 只打印命令不启动）。
 
 **四条 NVFP4 路线的定位对照**（任何时刻只启一条）：
 
 | 路线 | 脚本 | 上下文 | 加速方式 | 并发表现 | 定位 |
 | --- | --- | --- | --- | --- | --- |
-| vLLM + NVFP4 | `direct.sh` / `start-api-server-vllm.bat` | 200000 | —（MTP 已随模型更新失效） | 16 并发已实测良好 | **日常多客户端默认** |
-| SGLang + DSpark | `sglang-dspark.sh` / `start-api-server-dspark.bat` | 163840 | DSpark（认证路线） | 单请求 | 已实测的单流加速档，**镜像已删除、需先 `docker pull`（18 GB）** |
-| SparkInfer（本节） | `sparkinfer-serve.sh` / `start-api-server-sparkinfer.bat` | DSpark 153600 / AR 262144 | DSpark（引擎内） | 聚合吞吐不随并发增长 | 长上下文与单流的可选档 |
+| vLLM + NVFP4（目录 `-NVFP4-VLLM`） | `direct.sh` / `start-api-server-vllm.bat` | 200000 | MTP 可选（用 `-mtp` 启动器，见 4.6 节） | 16 并发已实测良好 | **日常多客户端默认** |
+| SGLang + DSpark（目录 `-NVFP4-DSpark`） | `sglang-dspark.sh` / `start-api-server-dspark.bat` | 163840 | DSpark（认证路线） | 单请求 | 已实测的单流加速档，**镜像已删除、需先 `docker pull`（18 GB）** |
+| SparkInfer（本节，目录 `-NVFP4-DSpark`） | `sparkinfer-serve.sh` / `start-api-server-sparkinfer.bat` | DSpark 153600 / AR 262144 | DSpark（引擎内） | 聚合吞吐不随并发增长 | 长上下文与单流的可选档 |
 | llama.cpp + GGUF | `start-api-server-gguf.bat` | 128000 | — | auto | GGUF 权重专用 |
 
 > 四条路线里任何时刻只启一条（共用 8192 端口，且 27B 权重占满显存）。删掉某个大镜像后 **D 盘可用空间不会自动变大**（WSL 的 ext4.vhdx 非稀疏），需要跑一次 `scripts/reclaim-wsl-space.bat`（管理员）离线压缩，见 Q17。
@@ -281,7 +283,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 默认只在本机监听（`127.0.0.1`）。想让**同一局域网里的其它电脑 / 手机**访问 API，需要三步：**让服务绑定所有网卡 + Windows 端口转发到 WSL + 防火墙放行**。
 
-最简单的方式：双击 `start-api-server-vllm.bat` / `start-api-server-gguf.bat` 任一（`start-api-server-mtp.bat` 已失效，见 4.6 节），在启动前的菜单里选 **`1` 开启**（`2` 关闭，回车默认关闭；`0` 退出）。选 `1` 会弹 **UAC 管理员授权**，然后完成端口转发和防火墙。专用脚本 `scripts/start-api-server-lan.bat` 仍可用，等价于默认启动器选 `1`（vLLM 200k，无 MTP）。
+最简单的方式：双击 `start-api-server-vllm.bat` / `start-api-server-gguf.bat` 任一（`start-api-server-mtp.bat` 现在也能用，见 4.6 节），在启动前的菜单里选 **`1` 开启**（`2` 关闭，回车默认关闭；`0` 退出）。选 `1` 会弹 **UAC 管理员授权**，然后完成端口转发和防火墙。专用脚本 `scripts/start-api-server-lan.bat` 仍可用，等价于默认启动器选 `1`（vLLM 200k，无 MTP）。
 
 开启后会做这三步：
 
@@ -301,7 +303,7 @@ http://<这台电脑的局域网IP>:8192/v1/chat/completions # 聊天
 也可以**手动**用命令行（管理员 PowerShell）做同样的事：
 
 ```powershell
-wsl -d Ubuntu -- bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/direct.sh start --lan --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+wsl -d Ubuntu -- bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/direct.sh start --lan --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 # 另开一个管理员 PowerShell：
 $wslIp = (wsl -d Ubuntu -- hostname -I).Trim().Split(' ')[0]
 netsh interface portproxy add v4tov4 listenport=8192 listenaddress=0.0.0.0 connectport=8192 connectaddress=$wslIp
@@ -317,7 +319,7 @@ netsh advfirewall firewall add rule name="Qwen API 8192" dir=in action=allow pro
 - **只做端口转发，不做 NAT 外网映射**：访问地址是 `http://<局域网IP>:8192`，路由器外的互联网设备仍无法访问（除非你另外配端口映射，本项目不做）。
 - **Windows 防火墙当前是关闭的**（本机 `netsh advfirewall show currentprofile` 显示专用/公用均为关闭），此时防火墙规则其实用不上；但为了你在打开防火墙时也能通，脚本仍会添加规则。
 - 想换端口：`set SERVE_PORT=8001` 后再双击，或加 `--port 8001`。
-- 三个 bat（`start-api-server-vllm.bat` / `-mtp` / `-gguf`）默认端口都是 8192，**不要同时启动**；开启局域网时端口转发也只能对应其中一个（其中 `-mtp` 在当前模型上已失效，见 4.6 节）。
+- 三个 bat（`start-api-server-vllm.bat` / `-mtp` / `-gguf`）默认端口都是 8192，**不要同时启动**；开启局域网时端口转发也只能对应其中一个（`-mtp` 指向 `-VLLM` 目录，见 4.6 节）。
 
 
 ### 5.1 先确认服务活着（Windows PowerShell）
@@ -329,16 +331,16 @@ curl http://127.0.0.1:8192/v1/models
 应返回类似（`max_model_len: 200000` 就是 200k 上下文）：
 
 ```json
-{"object":"list","data":[{"id":"Qwen3.8-27B-NVFP4-RTX5090","max_model_len":200000,...}]}
+{"object":"list","data":[{"id":"Qwen3.8-27B-NVFP4-VLLM","max_model_len":200000,...}]}
 ```
 
 ### 5.2 发一条聊天消息（curl）
 
 ```powershell
-curl -X POST http://127.0.0.1:8192/v1/chat/completions -H "Content-Type: application/json" -d '{\"model\":\"Qwen3.8-27B-NVFP4-RTX5090\",\"messages\":[{\"role\":\"user\",\"content\":\"你好，介绍一下你自己\"}],\"max_tokens\":64}'
+curl -X POST http://127.0.0.1:8192/v1/chat/completions -H "Content-Type: application/json" -d '{\"model\":\"Qwen3.8-27B-NVFP4-VLLM\",\"messages\":[{\"role\":\"user\",\"content\":\"你好，介绍一下你自己\"}],\"max_tokens\":64}'
 ```
 
-> `model` 填的是服务显示的模型名（默认 = 模型目录的文件夹名）。
+> `model` 填的是服务显示的模型名：**默认取模型目录的文件夹名**，所以 vLLM 路线现在就是 `Qwen3.8-27B-NVFP4-VLLM`（想固定成别的名字，启动前设 `SERVED_MODEL_NAME`）。SGLang 与 SparkInfer 两条线的名字由脚本写死：SGLang + DSpark 和 SparkInfer 投机模式都报 `Qwen3.8-27B-NVFP4-DSpark`，而 SparkInfer 的 `--no-spec`（纯自回归对照）模式仍报自己的名字 `Qwen3.8-27B-NVFP4`。
 
 ### 5.3 用 Python 调用（推荐，写代码时用这个）
 
@@ -352,7 +354,7 @@ from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:8192/v1", api_key="not-needed")
 
 resp = client.chat.completions.create(
-    model="Qwen3.8-27B-NVFP4-RTX5090",
+    model="Qwen3.8-27B-NVFP4-VLLM",
     messages=[{"role": "user", "content": "用一句话解释什么是 KV 缓存"}],
     max_tokens=128,
 )
@@ -380,14 +382,14 @@ print(resp.choices[0].message.content)
 curl 示例（在 5.2 的请求体里加这些字段）：
 
 ```powershell
-curl -X POST http://127.0.0.1:8192/v1/chat/completions -H "Content-Type: application/json" -d '{\"model\":\"Qwen3.8-27B-NVFP4-RTX5090\",\"messages\":[{\"role\":\"user\",\"content\":\"你好\"}],\"temperature\":0.6,\"top_p\":0.9,\"top_k\":40,\"repetition_penalty\":1.05,\"max_tokens\":2048}'
+curl -X POST http://127.0.0.1:8192/v1/chat/completions -H "Content-Type: application/json" -d '{\"model\":\"Qwen3.8-27B-NVFP4-VLLM\",\"messages\":[{\"role\":\"user\",\"content\":\"你好\"}],\"temperature\":0.6,\"top_p\":0.9,\"top_k\":40,\"repetition_penalty\":1.05,\"max_tokens\":2048}'
 ```
 
 Python（OpenAI SDK）里直接当参数传：
 
 ```python
 resp = client.chat.completions.create(
-    model="Qwen3.8-27B-NVFP4-RTX5090",
+    model="Qwen3.8-27B-NVFP4-VLLM",
     messages=[{"role": "user", "content": "你好"}],
     temperature=0.6,
     top_p=0.9,
@@ -498,7 +500,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh create --prefix ~
 现在的行为：双击任意 `.bat` 会停留显示菜单（1 开 LAN / 2 默认 / 0 退出），提权时正常弹 UAC，服务启动后停在窗口，Ctrl-C 停止后显示结果并等你按键——不再闪退。
 
 **Q15：双击 `start-api-server-mtp.bat` 起不来 / MTP 加速没了？**
-**预期结果，不是故障。** 2026-09-16 的模型更新删掉了 MTP 头：`config.json` 的 `text_config.mtp_num_hidden_layers` 变成 `0`，两个权重分片里 0 个 `mtp.*` 张量（索引与 safetensors 文件头一致，`hf_quant_config.json` 里也不再有 `mtp` 条目）。vLLM 会按配置去构造 MTP 草稿头，结果是"0 层 + 无权重"，所以 `--spec-method mtp` 在这份权重上用不了；该启动器已保留但标注为失效（文件头与启动窗口都会打印警告），验证明细见 4.6 节。要投机解码请改用 `scripts/start-api-server-dspark.bat`（SGLang + DSpark，本机实测单流 1.80×，4.8 节；**注意它的镜像已于 2026-09-19 从本机删除，需先 `docker pull` 约 18 GB**）或 `scripts/start-api-server-sparkinfer.bat`（SparkInfer 引擎内 DSpark，镜像仍在，见 4.9 节）；只要普通 vLLM 就用 `scripts/start-api-server-vllm.bat`。
+**先看 `MODEL_DIR` 指向哪份权重。** MTP 靠权重自带的草稿头工作，只有 pre-final 构建有：`/home/kami/models/Qwen3.8-27B-NVFP4-VLLM`（`mtp_num_hidden_layers = 1`、15 个 `mtp.*` 张量）。如果 `MODEL_DIR` 被指到 `/home/kami/models/Qwen3.8-27B-NVFP4-DSpark`（2026-09-16 的 final 构建：`mtp_num_hidden_layers = 0`、0 个 `mtp.*` 张量），vLLM 会建出"0 层 + 无权重"的 MTP 头，`--spec-method mtp` 起不来——这是预期结果，不是故障，两份权重的逐项对照见 4.6 节。改回 `-VLLM` 目录即可；不要投机解码就用 `scripts/start-api-server-vllm.bat`，要换别的投机路线就用 `scripts/start-api-server-sparkinfer.bat`（SparkInfer 引擎内 DSpark，镜像仍在，见 4.9 节）或 `scripts/start-api-server-dspark.bat`（SGLang + DSpark，本机实测单流 1.80×，4.8 节；**注意它的镜像已于 2026-09-19 从本机删除，需先 `docker pull` 约 18 GB**）。
 
 **Q17：删掉一个大镜像（比如 SGLang 那 41.9 GB）后，D 盘可用空间怎么没变大？**
 因为 WSL 的磁盘是**非稀疏**的动态 VHDX：删文件只释放发行版**内部**的 ext4 空间，Windows 侧的 `D:\WSL\ext4.vhdx` 不会自己缩小，`fstrim` 也只把块清零、不交还给 Windows。想自动回收得开稀疏模式，但微软对**已存在的发行版**直接拒绝了：`wsl --manage Ubuntu --set-sparse true` 返回 `Wsl/Service/E_INVALIDARG`，提示 *"由于潜在的数据损坏，目前已禁用稀疏 VHD 支持"*，必须加 `--allow-unsafe` 才肯转换——**本项目不使用这个开关**（它持有你的模型、venv、llama.cpp，不值得为省事冒险）。

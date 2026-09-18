@@ -22,8 +22,8 @@
 # Usage (inside WSL2 Ubuntu; needs root because user kami is not in the docker
 # group on this machine):
 #   sudo bash scripts/sparkinfer-serve.sh start \
-#     --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090 \
-#     --draft-dir /home/kami/models/Qwen3.8-27B-DSpark-NVFP4
+#     --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-DSpark \
+#     --draft-dir /home/kami/models/Qwen3.8-27B-DSpark-Acc
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,8 +32,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/wsl2-env-lib.sh
 . "$SCRIPT_DIR/lib/wsl2-env-lib.sh"
 
-DEFAULT_MODEL_DIR="/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
-DEFAULT_DRAFT_DIR="/home/kami/models/Qwen3.8-27B-DSpark-NVFP4"
+DEFAULT_MODEL_DIR="/home/kami/models/Qwen3.8-27B-NVFP4-DSpark"
+DEFAULT_DRAFT_DIR="/home/kami/models/Qwen3.8-27B-DSpark-Acc"
 IMAGE="${SPARKINFER_IMAGE:-ghcr.io/gittensor-ai-lab/sparkinfer-qwen38:0.5.10}"
 NAME="${SPARKINFER_NAME:-qwen38-sparkinfer}"
 PORT="${SERVE_PORT:-8192}"

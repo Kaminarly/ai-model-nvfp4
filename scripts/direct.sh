@@ -15,7 +15,7 @@
 # plus --port / SERVE_PORT for the port.
 #
 # Usage (inside WSL2 Ubuntu), e.g.:
-#   bash scripts/direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+#   bash scripts/direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 set -u
 
 # Machine-verified defaults, set BEFORE sourcing the libs so their

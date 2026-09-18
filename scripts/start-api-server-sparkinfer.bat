@@ -55,8 +55,8 @@ rem  both model folders are mounted read-only and nothing is downloaded.
 rem =====================================================================
 
 rem --- defaults (edit here or set the env vars above) ---
-if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090"
-if not defined DRAFT_DIR set "DRAFT_DIR=/home/kami/models/Qwen3.8-27B-DSpark-NVFP4"
+if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-DSpark"
+if not defined DRAFT_DIR set "DRAFT_DIR=/home/kami/models/Qwen3.8-27B-DSpark-Acc"
 if not defined WSL_DISTRO set "WSL_DISTRO=Ubuntu"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
 if not defined SPARKINFER_IMAGE set "SPARKINFER_IMAGE=ghcr.io/gittensor-ai-lab/sparkinfer-qwen38:0.5.10"

@@ -12,7 +12,7 @@
 #
 # This command NEVER downloads, copies, converts or deletes model files, and
 # makes no network calls. Run inside WSL2 Ubuntu, e.g.:
-#   bash scripts/preflight.sh --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090
+#   bash scripts/preflight.sh --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-VLLM
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

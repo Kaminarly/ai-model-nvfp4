@@ -99,7 +99,7 @@ expect_exit 0 "$code" "--no-spec dry-run exits 0"
 expect_not_contains "$out" "/models/qwen38-dspark" "no draft mount without speculation"
 expect_not_contains "$out" "serve-dspark" "no serve-dspark without speculation"
 expect_contains "$out" "-e CTX=262144" "autoregressive context default is the native window"
-expect_contains "$out" "-e MODEL_NAME=Qwen3.8-27B-NVFP4 " "autoregressive model id default"
+expect_contains "$out" "-e MODEL_NAME=Qwen3.8-27B-NVFP4 " "autoregressive model id keeps its own name"
 
 section "sparkinfer: overrides"
 out="$(run_env -- start --dry-run --port 9001 --context-length 65536 --model-name Custom \
