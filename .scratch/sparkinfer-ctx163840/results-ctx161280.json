@@ -1,0 +1,131 @@
+{
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 161280,
+    "max_output_tokens": 16384
+  },
+  "max_tokens": 192,
+  "arms": [
+    {
+      "arm": "text-dspark",
+      "requests": 8,
+      "decode_median": 201.3,
+      "decode_mean": 214.2,
+      "decode_min": 139.2,
+      "decode_max": 298.5,
+      "ttft_median_ms": 122.8,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 8.0,
+        "sparkinfer_speculative_tokens_total": 1026.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 130.4,
+          "wall_s": 0.806,
+          "completion_tokens": 95,
+          "prompt_tokens": 25,
+          "decode_tps_client": 139.2,
+          "server_ttft_ms": 127.4286,
+          "server_generation_ms": 802.594601,
+          "server_decode_tps": 118.36610896912823,
+          "text": "The daytime sky appears blue due to a phenomenon called Rayleigh scattering. As sunlight enters the Earth's atmosphere, it collides with gas molecules, which scatter the light in all directions. Because blue light travels in shorter, smaller waves than other colors, it is scattered much more efficiently by these molecules. This scattered blue light reaches our eyes from every part of the sky, making it appear blue, while longer-wavelength colors like red and orange pass through with less scattering.",
+          "label": "chat",
+          "prompt": "Explain in one short paragraph why the daytime sky is blue."
+        },
+        {
+          "ttft_ms": 130.9,
+          "wall_s": 0.377,
+          "completion_tokens": 53,
+          "prompt_tokens": 35,
+          "decode_tps_client": 211.5,
+          "server_ttft_ms": 128.302101,
+          "server_generation_ms": 373.076101,
+          "server_decode_tps": 142.0621687048241,
+          "text": "{\n  \"id\": \"prod-8842\",\n  \"name\": \"NebulaSync Pro\",\n  \"tags\": [\n    \"cloud\",\n    \"sync\",\n    \"enterprise\"\n  ]\n}",
+          "label": "json",
+          "prompt": "Return a JSON object with keys id, name, tags for a fictional product. Output only JSON, no prose."
+        },
+        {
+          "ttft_ms": 124.1,
+          "wall_s": 0.361,
+          "completion_tokens": 71,
+          "prompt_tokens": 30,
+          "decode_tps_client": 296.0,
+          "server_ttft_ms": 121.2411,
+          "server_generation_ms": 357.2508,
+          "server_decode_tps": 198.7399328426976,
+          "text": "```python\ndef reverse_linked_list(head):\n    \"\"\"Reverse a singly linked list in place and return the new head.\"\"\"\n    prev = None\n    curr = head\n    while curr:\n        next_node = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_node\n    return prev\n```",
+          "label": "code",
+          "prompt": "Write a Python function that reverses a singly linked list, with a short docstring."
+        },
+        {
+          "ttft_ms": 124.4,
+          "wall_s": 0.764,
+          "completion_tokens": 192,
+          "prompt_tokens": 44,
+          "decode_tps_client": 298.5,
+          "server_ttft_ms": 121.5139,
+          "server_generation_ms": 761.1219,
+          "server_decode_tps": 252.25919790246476,
+          "text": "Here is the step-by-step calculation to determine the arrival time.\n\n### Step 1: Calculate the travel duration\nTo find out how long the trip takes, we use the formula:\n$$ \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} $$\n\nGiven:\n*   Distance = $210 \\text{ km}$\n*   Speed = $84 \\text{ km/h}$\n\n$$ \\text{Time} = \\frac{210}{84} \\text{ hours} $$\n\nTo simplify the fraction $\\frac{210}{84}$:\n1.  Divide numerator and denominator by 42:\n    $$ 210 \\div 42 = 5 $$\n    $$ 84 \\div 42 = 2 $$\n2.  So, the time is:\n    $$ \\frac{5}{",
+          "label": "math",
+          "prompt": "A train leaves at 14:20 and travels 210 km at 84 km/h. Show the arrival time step by step."
+        },
+        {
+          "ttft_ms": 47.3,
+          "wall_s": 0.594,
+          "completion_tokens": 92,
+          "prompt_tokens": 24,
+          "decode_tps_client": 166.5,
+          "server_ttft_ms": 44.4583,
+          "server_generation_ms": 590.3692,
+          "server_decode_tps": 155.83468785295713,
+          "text": "TCP is connection-oriented, while UDP is connectionless.\nTCP guarantees reliable data delivery through acknowledgments and retransmissions, whereas UDP does not.\nTCP uses a sliding window mechanism for flow control, but UDP has no built-in flow control.\nTCP provides ordered delivery of data segments, while UDP packets may arrive out of order.\nTCP has a larger header overhead (20 bytes minimum) compared to UDP's smaller header (8 bytes).",
+          "label": "list",
+          "prompt": "List five differences between TCP and UDP, one per line."
+        },
+        {
+          "ttft_ms": 120.0,
+          "wall_s": 1.313,
+          "completion_tokens": 182,
+          "prompt_tokens": 26,
+          "decode_tps_client": 151.7,
+          "server_ttft_ms": 117.479599,
+          "server_generation_ms": 1310.220499,
+          "server_decode_tps": 138.90791675058352,
+          "text": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. It begins with evaporation, where solar energy heats water from oceans, lakes, and rivers, turning it into vapor. This vapor rises into the atmosphere and cools, condensing into clouds through a process called condensation. When these droplets combine and grow heavy, they fall back to Earth as precipitation, including rain, snow, sleet, or hail.\n\nOnce on the ground, water collects in bodies of water or infiltrates the soil, becoming groundwater. Some of this water is absorbed by plants and released back into the air through transpiration. Eventually, surface runoff and groundwater flow back into oceans and rivers, restarting the cycle. This perpetual process is vital for regulating climate, replenishing freshwater resources, and sustaining all life on the planet.",
+          "label": "prose",
+          "prompt": "Summarize the water cycle in about 120 words."
+        },
+        {
+          "ttft_ms": 121.5,
+          "wall_s": 0.694,
+          "completion_tokens": 149,
+          "prompt_tokens": 36,
+          "decode_tps_client": 258.7,
+          "server_ttft_ms": 118.7773,
+          "server_generation_ms": 690.298099,
+          "server_decode_tps": 215.84877637045327,
+          "text": "[\n  {\n    \"city\": \"Tokyo\",\n    \"population\": 13960000\n  },\n  {\n    \"city\": \"Yokohama\",\n    \"population\": 3740000\n  },\n  {\n    \"city\": \"Osaka\",\n    \"population\": 2750000\n  },\n  {\n    \"city\": \"Nagoya\",\n    \"population\": 2320000\n  },\n  {\n    \"city\": \"Sapporo\",\n    \"population\": 1960000\n  }\n]",
+          "label": "json2",
+          "prompt": "Return a JSON array of 5 objects, each with keys city and population, for major Japanese cities. Only JSON."
+        },
+        {
+          "ttft_ms": 119.6,
+          "wall_s": 1.119,
+          "completion_tokens": 192,
+          "prompt_tokens": 35,
+          "decode_tps_client": 191.1,
+          "server_ttft_ms": 117.4093,
+          "server_generation_ms": 1115.9463,
+          "server_decode_tps": 172.0512895647398,
+          "text": "```bash\nfind /var -type f -exec du -b {} + | sort -rn | head -10\n```\n\n### Explanation\n\n1.  **`find /var -type f`**: Recursively searches the `/var` directory for regular files only (excluding directories, symlinks, etc.).\n2.  **`-exec du -b {} +`**: For each found file, runs `du -b` (which reports disk usage in bytes, including apparent size). The `+` syntax batches the file arguments into a single `du` call for efficiency, rather than launching `du` once per file.\n3.  **`sort -rn`**: Sorts the output numerically (`-n`) in reverse order (`-r`), so the largest files appear first.\n4.  **`head -10`**: Takes only the first 10 lines of the sorted",
+          "label": "code2",
+          "prompt": "Write a bash one-liner that lists the 10 largest files under /var, then explain it briefly."
+        }
+      ]
+    }
+  ]
+}

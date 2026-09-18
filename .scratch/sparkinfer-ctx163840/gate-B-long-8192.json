@@ -1,0 +1,447 @@
+{
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 153600,
+    "max_output_tokens": 32768
+  },
+  "max_tokens_requested": 8192,
+  "prompt_tokens": 84,
+  "completion_tokens": 8192,
+  "finish_reason": "length",
+  "ttft_ms": 341.9,
+  "wall_s": 100.6,
+  "decode_tps_overall": 81.7,
+  "segments": [
+    {
+      "from": 1,
+      "to": 4096,
+      "tps": 78.8
+    },
+    {
+      "from": 4097,
+      "to": 8192,
+      "tps": 84.8
+    }
+  ],
+  "capacity_before": {
+    "active_requests": 0,
+    "waiting_requests": 0,
+    "free_kv_blocks": 9608,
+    "max_queue_depth": 0,
+    "accepting_requests": true
+  },
+  "capacity_samples": [
+    {
+      "t": 1789747361.4749165,
+      "active_requests": 0,
+      "free_kv_blocks": 9608,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747362.9757717,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747364.4767125,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747365.977672,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747367.4788637,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747368.9798028,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747370.480767,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747371.9817762,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747373.482809,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747374.9837952,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747376.484752,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747377.9858518,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747379.4868503,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747380.9877777,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747382.4886293,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747383.9895365,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747385.490485,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747386.991674,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747388.4927166,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747389.993721,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747391.4946687,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747392.9956026,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747394.4966083,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747395.9976225,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747397.498549,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747398.9994478,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747400.5006046,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747402.001479,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747403.5024073,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747405.0033355,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747406.5042007,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747408.005208,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747409.5061612,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747411.0071092,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747412.5080726,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747414.0089943,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747415.509961,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747417.0108595,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747418.5118124,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747420.0127685,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747421.5136306,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747423.0145655,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747424.5154293,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747426.0164914,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747427.5175838,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747429.0185237,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747430.5194404,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747432.020377,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747433.5212502,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747435.0221634,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747436.523097,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747438.0240228,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747439.5249321,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747441.0261366,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747442.5270865,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747444.0280643,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747445.529138,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747447.030071,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747448.5310664,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747450.0320134,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747451.5330453,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747453.0340257,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747454.5350835,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747456.0360742,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747457.536949,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747459.03791,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747460.5387797,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    },
+    {
+      "t": 1789747462.0397348,
+      "active_requests": 1,
+      "free_kv_blocks": 9089,
+      "accepting_requests": true
+    }
+  ],
+  "spec_delta": {
+    "sparkinfer_speculative_runs_total": 1.0,
+    "sparkinfer_speculative_tokens_total": 421.0
+  }
+}

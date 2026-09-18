@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Fake docker for tests/sparkinfer-tests.sh: answers the subcommands the
+# SparkInfer launcher's preflight uses and records every argv.
+#
+# Controls:
+#   FAKE_DOCKER_LOG         file that receives one line per invocation (argv)
+#   FAKE_DOCKER_INFO        ok (default) | fail   -> `docker info`
+#   FAKE_DOCKER_IMAGES      present (default) | missing
+#   FAKE_DOCKER_CONTAINER   absent (default) | present  -> stale container
+#
+# Always exits 0 for the subcommands the launcher runs for effect (rm, run), so
+# the launcher's own logic is what the tests exercise.
+LOG="${FAKE_DOCKER_LOG:-/dev/null}"
+[ "$LOG" = "/dev/null" ] || printf '%s\n' "$*" >> "$LOG"
+
+case "${1:-}" in
+  --version)
+    printf 'Docker version 29.8.1, build 4a63305\n'
+    exit 0
+    ;;
+  info)
+    if [ "${FAKE_DOCKER_INFO:-ok}" = "fail" ]; then
+      printf 'Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?\n' >&2
+      exit 1
+    fi
+    printf 'Server Version: 29.8.1\n'
+    exit 0
+    ;;
+  image)
+    # image inspect <ref>
+    if [ "${FAKE_DOCKER_IMAGES:-present}" = "present" ]; then
+      exit 0
+    fi
+    printf 'Error response from daemon: No such image: %s\n' "${3:-}" >&2
+    exit 1
+    ;;
+  container)
+    # container inspect <name>
+    if [ "${FAKE_DOCKER_CONTAINER:-absent}" = "present" ]; then
+      exit 0
+    fi
+    printf 'Error: No such container: %s\n' "${3:-}" >&2
+    exit 1
+    ;;
+  ps)
+    printf ''
+    exit 0
+    ;;
+  rm|logs|run)
+    exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac

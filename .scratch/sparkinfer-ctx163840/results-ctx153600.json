@@ -1,0 +1,200 @@
+{
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 153600,
+    "max_output_tokens": 16384
+  },
+  "max_tokens": 192,
+  "arms": [
+    {
+      "arm": "text-dspark",
+      "requests": 8,
+      "decode_median": 223.8,
+      "decode_mean": 219.9,
+      "decode_min": 149.1,
+      "decode_max": 293.8,
+      "ttft_median_ms": 122.8,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 8.0,
+        "sparkinfer_speculative_tokens_total": 1043.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 122.1,
+          "wall_s": 0.776,
+          "completion_tokens": 102,
+          "prompt_tokens": 25,
+          "decode_tps_client": 154.4,
+          "server_ttft_ms": 119.053104,
+          "server_generation_ms": 772.345324,
+          "server_decode_tps": 132.0652780957343,
+          "text": "The daytime sky appears blue due to a phenomenon called Rayleigh scattering, where sunlight interacts with molecules in Earth's atmosphere. As sunlight enters the atmosphere, it is scattered by gas molecules, and shorter wavelengths of light—such as blue and violet—are scattered much more strongly than longer wavelengths like red and orange. Although violet light is scattered even more than blue, our eyes are more sensitive to blue, and some of the violet light is absorbed by the upper atmosphere, resulting in the characteristic blue hue we perceive.",
+          "label": "chat",
+          "prompt": "Explain in one short paragraph why the daytime sky is blue."
+        },
+        {
+          "ttft_ms": 124.3,
+          "wall_s": 0.344,
+          "completion_tokens": 54,
+          "prompt_tokens": 35,
+          "decode_tps_client": 241.1,
+          "server_ttft_ms": 120.660404,
+          "server_generation_ms": 339.086411,
+          "server_decode_tps": 159.25144225257674,
+          "text": "{\n  \"id\": \"prod-8842\",\n  \"name\": \"Quantum Flux Capacitor\",\n  \"tags\": [\n    \"electronics\",\n    \"experimental\",\n    \"high-power\"\n  ]\n}",
+          "label": "json",
+          "prompt": "Return a JSON object with keys id, name, tags for a fictional product. Output only JSON, no prose."
+        },
+        {
+          "ttft_ms": 123.0,
+          "wall_s": 0.361,
+          "completion_tokens": 71,
+          "prompt_tokens": 30,
+          "decode_tps_client": 293.8,
+          "server_ttft_ms": 119.656003,
+          "server_generation_ms": 357.463911,
+          "server_decode_tps": 198.62144908944387,
+          "text": "```python\ndef reverse_linked_list(head):\n    \"\"\"Reverse a singly linked list in place and return the new head.\"\"\"\n    prev = None\n    curr = head\n    while curr:\n        next_node = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_node\n    return prev\n```",
+          "label": "code",
+          "prompt": "Write a Python function that reverses a singly linked list, with a short docstring."
+        },
+        {
+          "ttft_ms": 124.7,
+          "wall_s": 0.786,
+          "completion_tokens": 192,
+          "prompt_tokens": 44,
+          "decode_tps_client": 288.8,
+          "server_ttft_ms": 121.534304,
+          "server_generation_ms": 781.533524,
+          "server_decode_tps": 245.67084341733238,
+          "text": "Here is the step-by-step calculation to determine the arrival time.\n\n### Step 1: Calculate the travel duration\nTo find out how long the trip takes, we use the formula:\n$$ \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} $$\n\nGiven:\n*   Distance = $210 \\text{ km}$\n*   Speed = $84 \\text{ km/h}$\n\n$$ \\text{Time} = \\frac{210}{84} \\text{ hours} $$\n\nTo simplify the fraction $\\frac{210}{84}$:\n1.  Divide numerator and denominator by 42:\n    $$ 210 \\div 42 = 5 $$\n    $$ 84 \\div 42 = 2 $$\n2.  So, the time is:\n    $$ \\frac{5}{",
+          "label": "math",
+          "prompt": "A train leaves at 14:20 and travels 210 km at 84 km/h. Show the arrival time step by step."
+        },
+        {
+          "ttft_ms": 50.1,
+          "wall_s": 0.668,
+          "completion_tokens": 101,
+          "prompt_tokens": 24,
+          "decode_tps_client": 162.0,
+          "server_ttft_ms": 46.465402,
+          "server_generation_ms": 663.565821,
+          "server_decode_tps": 152.20796009021686,
+          "text": "TCP is connection-oriented, while UDP is connectionless.\nTCP guarantees reliable data delivery through acknowledgments and retransmissions, whereas UDP does not.\nTCP uses a sliding window mechanism for flow control, but UDP has no built-in flow control.\nTCP data is delivered in the exact order it was sent, while UDP packets may arrive out of order.\nTCP headers are larger (20 bytes minimum) compared to UDP headers (8 bytes), making UDP more efficient for small data transfers.",
+          "label": "list",
+          "prompt": "List five differences between TCP and UDP, one per line."
+        },
+        {
+          "ttft_ms": 120.6,
+          "wall_s": 1.334,
+          "completion_tokens": 182,
+          "prompt_tokens": 26,
+          "decode_tps_client": 149.1,
+          "server_ttft_ms": 117.449904,
+          "server_generation_ms": 1330.543741,
+          "server_decode_tps": 136.7861832661088,
+          "text": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. It begins with evaporation, where solar energy heats water from oceans, lakes, and rivers, turning it into vapor. This vapor rises into the atmosphere and cools, condensing into clouds through a process called condensation. When these droplets combine and grow heavy, they fall back to Earth as precipitation, including rain, snow, sleet, or hail.\n\nOnce on the ground, water collects in bodies of water or infiltrates the soil, becoming groundwater. Some of this water is absorbed by plants and released back into the air through transpiration. Eventually, surface runoff and groundwater flow back into oceans and rivers, restarting the cycle. This perpetual process is vital for regulating climate, replenishing freshwater resources, and sustaining all life on the planet.",
+          "label": "prose",
+          "prompt": "Summarize the water cycle in about 120 words."
+        },
+        {
+          "ttft_ms": 122.7,
+          "wall_s": 0.685,
+          "completion_tokens": 149,
+          "prompt_tokens": 36,
+          "decode_tps_client": 263.4,
+          "server_ttft_ms": 119.311204,
+          "server_generation_ms": 680.003021,
+          "server_decode_tps": 219.11667360077803,
+          "text": "[\n  {\n    \"city\": \"Tokyo\",\n    \"population\": 13960000\n  },\n  {\n    \"city\": \"Yokohama\",\n    \"population\": 3740000\n  },\n  {\n    \"city\": \"Osaka\",\n    \"population\": 2750000\n  },\n  {\n    \"city\": \"Nagoya\",\n    \"population\": 2320000\n  },\n  {\n    \"city\": \"Sapporo\",\n    \"population\": 1960000\n  }\n]",
+          "label": "json2",
+          "prompt": "Return a JSON array of 5 objects, each with keys city and population, for major Japanese cities. Only JSON."
+        },
+        {
+          "ttft_ms": 123.2,
+          "wall_s": 1.048,
+          "completion_tokens": 192,
+          "prompt_tokens": 35,
+          "decode_tps_client": 206.5,
+          "server_ttft_ms": 119.367503,
+          "server_generation_ms": 1044.045132,
+          "server_decode_tps": 183.9000959969995,
+          "text": "```bash\nfind /var -type f -exec du -b {} + | sort -rn | head -10\n```\n\n### Explanation\n\n1. **`find /var -type f`**: Recursively searches under `/var` for regular files only.\n2. **`-exec du -b {} +`**: For each found file, runs `du -b` (which reports disk usage in bytes, including apparent size) and batches the arguments efficiently with `+`.\n3. **`sort -rn`**: Sorts the output numerically (`-n`) in reverse order (`-r`), so the largest files appear first.\n4. **`head -10`**: Takes only the first 10 lines, i.e., the 10 largest files.\n\n> **Note**: `du -b` may not be available on all systems (e.g., macOS uses `du -",
+          "label": "code2",
+          "prompt": "Write a bash one-liner that lists the 10 largest files under /var, then explain it briefly."
+        }
+      ]
+    },
+    {
+      "arm": "text-ar",
+      "requests": 4,
+      "decode_median": 95.5,
+      "decode_mean": 95.2,
+      "decode_min": 94.3,
+      "decode_max": 95.6,
+      "ttft_median_ms": 93.0,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 0.0,
+        "sparkinfer_speculative_tokens_total": 0.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 92.9,
+          "wall_s": 1.213,
+          "completion_tokens": 108,
+          "prompt_tokens": 25,
+          "decode_tps_client": 95.6,
+          "server_ttft_ms": 90.712003,
+          "server_generation_ms": 1209.386127,
+          "server_decode_tps": 89.30150395217822,
+          "text": "The daytime sky appears blue because sunlight, which looks white but contains all colors of the visible spectrum, scatters off the molecules in Earth's atmosphere. This process, known as Rayleigh scattering, affects shorter wavelengths more strongly than longer ones. Since blue and violet light have shorter wavelengths, they scatter much more effectively than red or yellow light. While violet scatters even more than blue, our eyes are more sensitive to blue, and some of the violet light is absorbed by the upper atmosphere, resulting in the dominant blue hue we perceive.",
+          "label": "chat",
+          "prompt": "Explain in one short paragraph why the daytime sky is blue."
+        },
+        {
+          "ttft_ms": 93.0,
+          "wall_s": 0.549,
+          "completion_tokens": 44,
+          "prompt_tokens": 35,
+          "decode_tps_client": 94.3,
+          "server_ttft_ms": 90.6581,
+          "server_generation_ms": 545.794301,
+          "server_decode_tps": 80.61645187460468,
+          "text": "{\n  \"id\": \"prod_001\",\n  \"name\": \"Aurora Desk Lamp\",\n  \"tags\": [\"lighting\", \"home-office\", \"led\"]\n}",
+          "label": "json",
+          "prompt": "Return a JSON object with keys id, name, tags for a fictional product. Output only JSON, no prose."
+        },
+        {
+          "ttft_ms": 92.6,
+          "wall_s": 1.307,
+          "completion_tokens": 117,
+          "prompt_tokens": 30,
+          "decode_tps_client": 95.5,
+          "server_ttft_ms": 90.141401,
+          "server_generation_ms": 1303.781503,
+          "server_decode_tps": 89.73896295566635,
+          "text": "```python\nclass ListNode:\n    \"\"\"Definition for singly-linked list node.\"\"\"\n    def __init__(self, val=0, next=None):\n        self.val = val\n        self.next = next\n\n\ndef reverse_linked_list(head: ListNode) -> ListNode:\n    \"\"\"Reverse a singly linked list in-place and return the new head.\"\"\"\n    prev = None\n    curr = head\n    while curr:\n        next_node = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_node\n    return prev\n```",
+          "label": "code",
+          "prompt": "Write a Python function that reverses a singly linked list, with a short docstring."
+        },
+        {
+          "ttft_ms": 93.3,
+          "wall_s": 2.093,
+          "completion_tokens": 192,
+          "prompt_tokens": 44,
+          "decode_tps_client": 95.5,
+          "server_ttft_ms": 91.0029,
+          "server_generation_ms": 2089.787805,
+          "server_decode_tps": 91.87535669440851,
+          "text": "Here is the step-by-step calculation to determine the arrival time of the train.\n\n### Step 1: Calculate the travel duration\n\nTo find out how long the trip takes, we use the formula:\n$$ \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} $$\n\nGiven:\n*   Distance ($d$) = $210 \\text{ km}$\n*   Speed ($v$) = $84 \\text{ km/h}$\n\n$$ \\text{Time} = \\frac{210}{84} \\text{ hours} $$\n\nTo simplify the fraction $\\frac{210}{84}$:\n1.  Divide numerator and denominator by 42:\n    *   $210 \\div 42 = 5$\n    *   $84 \\div 42 = 2$\n2.  So",
+          "label": "math",
+          "prompt": "A train leaves at 14:20 and travels 210 km at 84 km/h. Show the arrival time step by step."
+        }
+      ]
+    }
+  ]
+}

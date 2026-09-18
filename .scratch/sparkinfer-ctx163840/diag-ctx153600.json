@@ -1,0 +1,87 @@
+{
+  "label": "ctx153600",
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 153600,
+    "max_output_tokens": 16384
+  },
+  "max_tokens": 512,
+  "requests": [
+    {
+      "chunks": 512,
+      "completion_tokens": 512,
+      "ttft_ms": 366.0,
+      "wall_s": 4.433,
+      "decode_tps_client": 125.7,
+      "segments_tps": [
+        149.8,
+        159.6,
+        130.2,
+        90.5
+      ],
+      "spec_delta": {
+        "sparkinfer_speculative_runs_total": 1.0,
+        "sparkinfer_speculative_tokens_total": 479.0
+      },
+      "prompt": "prose",
+      "mode": "dspark-greedy"
+    },
+    {
+      "chunks": 512,
+      "completion_tokens": 512,
+      "ttft_ms": 91.8,
+      "wall_s": 5.473,
+      "decode_tps_client": 95.0,
+      "segments_tps": [
+        96.2,
+        96.1,
+        95.6,
+        94.4
+      ],
+      "spec_delta": {
+        "sparkinfer_speculative_runs_total": 0.0,
+        "sparkinfer_speculative_tokens_total": 0.0
+      },
+      "prompt": "prose",
+      "mode": "ar-temp0.7"
+    },
+    {
+      "chunks": 512,
+      "completion_tokens": 512,
+      "ttft_ms": 131.2,
+      "wall_s": 2.836,
+      "decode_tps_client": 189.0,
+      "segments_tps": [
+        309.3,
+        385.4,
+        210.8,
+        95.1
+      ],
+      "spec_delta": {
+        "sparkinfer_speculative_runs_total": 1.0,
+        "sparkinfer_speculative_tokens_total": 473.0
+      },
+      "prompt": "code",
+      "mode": "dspark-greedy"
+    },
+    {
+      "chunks": 512,
+      "completion_tokens": 512,
+      "ttft_ms": 92.1,
+      "wall_s": 5.476,
+      "decode_tps_client": 94.9,
+      "segments_tps": [
+        96.2,
+        96.0,
+        95.6,
+        94.2
+      ],
+      "spec_delta": {
+        "sparkinfer_speculative_runs_total": 0.0,
+        "sparkinfer_speculative_tokens_total": 0.0
+      },
+      "prompt": "code",
+      "mode": "ar-temp0.7"
+    }
+  ]
+}

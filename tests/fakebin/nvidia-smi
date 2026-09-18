@@ -12,6 +12,11 @@ case "${1:-}" in
     printf '%s\n' "${FAKE_GPU_LINE:-NVIDIA GeForce RTX 5090, 610.88, 32768 MiB}"
     exit 0
     ;;
+  --query-gpu=name*)
+    # Name-only form used by the SparkInfer launcher's preflight.
+    printf '%s\n' "${FAKE_GPU_NAME:-NVIDIA GeForce RTX 5090}"
+    exit 0
+    ;;
   --query-gpu=memory.total,memory.used*)
     printf '%s\n' "${FAKE_GPU_MEMORY_LINE:-32607, 1024}"
     exit 0

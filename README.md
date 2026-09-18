@@ -217,16 +217,59 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 上面几节都是 vLLM 路线（GGUF 那节走 llama.cpp）。同样的 NVFP4 权重还能用模型作者认证的 **SGLang 镜像 + DSpark 投机解码**来跑：同一引擎下解码吞吐从 85.75 升到 154.12 tok/s（**1.80×**，本机实测，见 `result/qwen38-nvfp4-dspark-upgrade-result.md`），代价是显存多占约 340 MiB。双击 `scripts/start-api-server-dspark.bat` 即按本机实测参数启动：
 
-- **引擎/镜像**：SGLang，镜像 `lmsysorg/sglang:qwen38-27b`（作者为 Qwen3.8 定制编译的 CUDA 13 镜像，约 18 GB），跑在 Docker 里；
+- **引擎/镜像**：SGLang，镜像 `lmsysorg/sglang:qwen38-27b`（作者为 Qwen3.8 定制编译的 CUDA 13 镜像，约 18 GB 下载 / **41.9 GB 落盘**），跑在 Docker 里。**⚠ 这个镜像已于 2026-09-19 从本机删除**（它太大，删前记录：digest `lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1`，详见 `result/sglang-image-removal-result.md`）：**这条路线现在跑不起来**，双击启动器会停在预检并提示 `pull it (about 18 GB): docker pull lmsysorg/sglang:qwen38-27b`——脚本不会自动下载，要恢复这条路线就手动执行那条 `docker pull`（想复现同一份镜像可按上面的 digest 拉）。vLLM 与 SparkInfer 两条线不受影响（已实测）；
 - **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`（主模型）与 `/home/kami/models/Qwen3.8-27B-DSpark-NVFP4`（草稿模型），两个目录都以只读方式挂进容器，容器内不做任何下载。模型 ID 通过 `--served-model-name` 别名为 **`Qwen3.8-27B-NVFP4-DSpark`**，客户端请求里的 `model` 字段用它（不是容器内挂载路径）；
-- **参数**（本机实测）：上下文 **163840**、`--speculative-dspark-block-size 7`、KV 缓存 fp8_e4m3、`mem-fraction-static 0.90`、单请求（`max-running-requests 1`）。**200k 上下文在 32 GB 显存上放不下**：实测 KV 池在 0.86 时上限 136743 token、0.90 时 166793 token（153k 输入实跑 55 秒正常返回），超限时引擎在入队阶段就返回 400、不是 OOM；不要与 `start-api-server.bat` / `-mtp` / `-gguf` 同时启动（共用 8192，且显存只够一个引擎）；
+- **参数**（本机实测）：上下文 **163840**、`--speculative-dspark-block-size 7`、KV 缓存 fp8_e4m3、`mem-fraction-static 0.90`、单请求（`max-running-requests 1`）。**200k 上下文在 32 GB 显存上放不下**：实测 KV 池在 0.86 时上限 136743 token、0.90 时 166793 token（153k 输入实跑 55 秒正常返回），超限时引擎在入队阶段就返回 400、不是 OOM；不要与 `start-api-server-vllm.bat` / `-mtp` / `-gguf` 同时启动（共用 8192，且显存只够一个引擎）；
 - **多模态**：该 checkpoint 自带 Qwen3.5 视觉塔，SGLang 默认启用，已实测图片输入正常理解（`image_tokens` 计入 usage），无需额外参数；
 - **端口 8192（固定）**：与 vLLM / GGUF 那条线同端口，客户端可以只配一个 endpoint 在两条引擎线之间切换；
 - **默认仅本机**：启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）。容器内部本来就绑 `0.0.0.0`，决定别的设备能否访问的是 Windows 侧的端口转发 + 防火墙，选 `1` 时由脚本自动配置并在退出时清理。
 
 **这个启动器前台运行、不带自动重启**：窗口里的日志就是服务状态（加载完成会打印 `The server is fired up and ready to roll!`），**Ctrl+C 停止服务**，窗口关掉服务就结束。原因在 WSL 的行为：最后一个会话一结束，WSL 就把整个发行版关掉（日志里的 `InitTerminateInstanceInternal ... reboot(RB_POWER_OFF)`），容器无论怎么启动都会随之被杀；而 `--restart` 策略只会把它变成"发行版每次启动就重新加载、加载到一半又被杀"的循环。开着窗口就是保活，Ctrl+C 就是停止按钮。
 
-可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SGLANG_IMAGE`、`SGLANG_NAME`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sglang-dspark.sh`（例如 `--context-length 65536`、`--no-spec` 关掉投机做对照、`--dry-run` 只打印命令不启动）。服务停止后容器会保留（没有用 `--rm`），可用 `wsl -d Ubuntu -u root -- docker logs qwen38-sglang` 回看日志。
+可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SGLANG_IMAGE`、`SGLANG_NAME`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sglang-dspark.sh`（例如 `--context-length 65536`、`--no-spec` 关掉投机做对照、`--dry-run` 只打印命令不启动）。服务停止后容器会保留（没有用 `--rm`），可用 `wsl -d Ubuntu -u root -- docker logs qwen38-sglang` 回看日志——**注意 2026-09-19 那个容器已随镜像一起删除**，它最后一次运行的日志留档在 WSL 内 `~/logs/qwen38-sglang-2026-09-19.log`；重新 `docker pull` 后再启动会新建一个同名容器。
+
+### 4.9 用 SparkInfer 跑 NVFP4（原生引擎，可选；DSpark 单流实测 1.65×）
+
+第三条引擎路线。**SparkInfer** 是一份原生 C++/CUDA 推理运行时（无 Python 推理栈），作者为这份 NVFP4 权重发布了官方镜像，体积只有 **1.4 GB**（对比 SGLang 镜像 41.9 GB）。同一份权重、同样只读挂载，双击 `scripts/start-api-server-sparkinfer.bat`，或在 WSL 内跑 `sudo bash scripts/sparkinfer-serve.sh start`。
+
+- **引擎/镜像**：`ghcr.io/gittensor-ai-lab/sparkinfer-qwen38:0.5.10`，**按版本固定，不要用 `latest`**（标签会漂移）。实测镜像索引 digest：`sha256:d519d6ed995cf24f4a00c224733082166cfcb56ebaefe45ff94f80e9f518bbe1`。镜像里**不含任何模型权重**，拉取只需约 1.4 GB；
+- **模型**：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090` 挂到容器内 `/models/qwen38-nvfp4`，草稿 `/home/kami/models/Qwen3.8-27B-DSpark-NVFP4` 挂到 `/models/qwen38-dspark`，**两个都是 `:ro` 只读**。容器日志里**没有** `[sparkinfer] downloading` 一行，即证明权重全部来自本地挂载、没有联网下载（启动器还会额外设 `HF_HUB_OFFLINE=1`，并对两个目录做"缺文件就拒绝启动"的前置检查）；
+- **本机实测（RTX 5090、ctx 131072、前缀缓存关闭、客户端流式计时）**：单流解码 **AR 89.7 tok/s → DSpark 147.6 tok/s（1.65×）**，TTFT 中位数约 96 → 123 ms；JSON 类输出最快（实测 354 tok/s，约为 AR 的 4 倍）。上游给的区间是聊天 1.47×、JSON 3.45×、4k 上下文 4.01×，**引用区间而不是单点**；
+- **并发是这条路线最大的短板，且比预期更严重**：本机实测聚合吞吐在 1/2/4/8/16 并发下**几乎完全不涨**（AR：87.5 / 87.0 / 89.3 / 90.1 / 90.8 tok/s）。这不是"排队串行"——服务端自报 `active_requests=8`、`sum(generation_ms)/耗时 ≈ 8`，请求确实在并行处理，但每个请求的速率被等比例摊薄。**厂商模型卡"8 并发 344 tok/s"在本机没有复现**：同口径实测 8 并发 88.9 tok/s，恰好等于模型卡自己给的 1 并发数值。**因此多客户端场景继续用 vLLM，不要换到这条线**；
+- **上下文取舍（本机实测显存）**：
+
+| 用途 | CTX | 实测占用 / 余量 | 说明 |
+| --- | --- | --- | --- |
+| **DSpark（默认档）** | **153600** | 29.4 GB / 余 2.4 GB | 本次扫描的甜点值：decode 与 131072 同速（512 token 输出 189.0 / 125.7 tok/s，AR 95.0），上下文 +17% |
+| DSpark（实测干净上限） | 158720 | 29.6 GB / 余 2.2 GB | 重复性探针 code 6/6、prose 4/4 完全一致，但余量已薄，桌面占用一涨就会顶到阈值 |
+| DSpark（临界，不建议） | 161280 | 29.7 GB / 余 2.1 GB | 256 token 请求 10/10 满速，512 token 请求偶发落慢路径（code 122.7 vs 正常 188.9） |
+| DSpark（不可用） | 163840 | 30.3 GB / 余 1.5 GB | 引擎整体换入慢路径：DSpark 22.8 / 43.9 tok/s、连 AR 都掉到 50.4–50.8、功耗 203 W（正常 455 W） |
+| AR 冒烟·日常 | 65536 | 24.1 GB / 余 8.0 GB | 余量充足，长提示不降级 |
+| AR 原生窗口 | 262144 | 31.7 GB / 余 **0.46 GB** | 能启动，但**几乎没有余量**：引擎会释放 NVFP4 `lm_head`、把 prefill 按块切开（日志 `[prefill] ffn chunk 3754 -> 1877`），4k 提示就明显变慢。**不建议日常用** |
+
+- **上下文与草稿的硬边界（本次扫描，详见 `result/sparkinfer-ctx163840-image-result.md`）**：DSpark 的可用区间到 **158720** 为止，再往上是**台阶式**翻转而非渐变——153600 与 163840 的运行峰值显存只差 125 MiB，前者满速（功耗 459 W），后者引擎整体退回慢路径（功耗 203 W，DSpark 22.8 / 43.9 tok/s，比同档 AR 还慢）。去掉草稿（`--no-spec`）后同一个 **163840 完全正常**（AR 95.0 tok/s、功耗 445 W），说明触发器是草稿的 3637 MiB 占用，不是上下文本身。阈值取决于**启动瞬间的绝对空闲显存**（本机桌面占用在 1.2–2.0 GB 之间波动过），所以启动器默认取留了 ~2.4 GB 余量的 153600；起步前先看启动后显存，余量低于 ~2.3 GB 就降 ctx 或先 `wsl --shutdown`；
+- **KV 缓存默认就是 8-bit（int8）**：日志 `kv_cache: int8=1`，`SPARKINFER_KV_INT8` 在 `--ctx ≥ 4096` 时默认开启，实测成本恒为 **32 KB/token**（16 个全注意力层 × 2 × 4 KV head × 256 head_dim × 1 B）——163840 档 5.0 GiB、131072 档 4.0 GiB。所以长上下文吃显存与 KV 精度无关，`SPARKINFER_KV_INT8=0` 只会让 KV 更大；
+- **图片识别（本次首次实测）**：同一份 NVFP4 权重支持图片输入——合成图埋针 `E-7741` 逐字答对、形状与颜色全对、描述正确。图片请求**永远不投机**（`speculative_runs_total` 增量 0）也**不进前缀缓存**，所以代价在 TTFT 与上下文：一张 1024×640 PNG ≈ **630 个 prompt token**、TTFT 726 ms（纯文本 93 ms），decode 只有 AR 速率（92.4 tok/s ≈ 纯文本 AR 95.4）。GGUF 目标不支持图片（返回 400）；
+- **DSpark 只在很窄的条件下生效**（以下每条都用 `/metrics` 实测过）：请求必须是 **greedy + 纯文本 + 不带 tools/图片 + 未命中前缀缓存**。实测 3 个合格请求 → `sparkinfer_speculative_runs_total` **+3**（投机 token +487）；`temperature 0.7` → **+0**；带 `tools` → **+0**；命中前缀缓存（确认 `prefix_cache_hits_total` +1、复用 1216 个 token）→ **+0**。**计数为 0 时不要说"已启用"**；
+- **可复现性的坑（重要）**：这条引擎**默认模式不是逐位可复现的**——同一台服务、同一提示、同样 `temperature: 0`，两次运行的开放式回答会有差异（实测 8 条里 4~6 条不同）。引擎自带 `SPARKINFER_DETERMINISTIC=1` 才是逐位可复现模式（实测 8/8 一致），代价是关闭前缀缓存、TTFT 略升。**需要"同样输入必须同样输出"（评测、回归、对拍）时必须设它**。在该模式下实测 **DSpark 与 AR 输出逐字节一致（8/8）**，即投机在本机是无损的；
+- **长上下文正确性**：上游 `server/README.md` 记录过"int8 KV 下 ≥2048 token 的 GQA 融合 prefill 注意力不准且不可复现"，issue #976 也记录过 ≥4k 长提示答错。**在 0.5.10 上本机没有复现**：30 / 1.5k / 4k / 16k / 31k / 44k 提示 × 3 次，算术与"埋针召回"两种探针全部正确且一致（默认路径与 `SPARKINFER_DETERMINISTIC=1` 两条路径各 33/33），包含上游 0.5.8 描述的"44k 提示、20k 之前埋一行 `ERROR`"场景（6/6 正确）。**注意**：执行计划里写的规避变量 `SPARKINFER_PREFILL_ATTN_GQA_RQH` 在 0.5.10 的二进制里**不存在**（环境变量字符串表中没有它），所以那个 A/B 无法按原计划执行——结论依据是"默认路径本身就通过"（依据见 `result/sparkinfer-prefill-attn-gqa-rqh-research.md`）；
+- **端口 8192（固定）**：与 vLLM / GGUF / SGLang 那三条线**不可同时启动**（同端口，且 27B 权重占满显存）；
+- **默认仅本机**：启动前同样问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭），选 `1` 会走 UAC 提权、自动配置并在退出时清理 portproxy + 防火墙。
+
+**这个启动器前台运行、不带自动重启、也不用 `--rm`**：理由与 4.8 完全相同——WSL 会随最后一个会话回收发行版，后台容器必被杀。窗口里的日志就是服务状态（就绪标志是 `[sparkinfer-server] model ready:` 与 `[sparkinfer-server] OpenAI-compatible API on http://0.0.0.0:8080`），**Ctrl+C 停止**；容器保留，事后 `wsl -d Ubuntu -u root -- docker logs qwen38-sparkinfer` 可回看。
+
+可覆盖的环境变量：`MODEL_DIR`、`DRAFT_DIR`、`SERVE_PORT`、`SPARKINFER_IMAGE`、`SPARKINFER_NAME`、`SPARKINFER_CTX`、`SPARKINFER_MODEL_NAME`、`SPARKINFER_SAMPLING_DEFAULTS`、`SPARKINFER_KV_INT8`、`SPARKINFER_EXTRA_ARGS`、`WSL_DISTRO`。命令行参数直接透传给 `scripts/sparkinfer-serve.sh`（`--no-spec` 关掉投机做对照、`--context-length N`、`--model-name X`、`--no-download` 硬离线、`--dry-run` 只打印命令不启动）。
+
+**四条 NVFP4 路线的定位对照**（任何时刻只启一条）：
+
+| 路线 | 脚本 | 上下文 | 加速方式 | 并发表现 | 定位 |
+| --- | --- | --- | --- | --- | --- |
+| vLLM + NVFP4 | `direct.sh` / `start-api-server-vllm.bat` | 200000 | —（MTP 已随模型更新失效） | 16 并发已实测良好 | **日常多客户端默认** |
+| SGLang + DSpark | `sglang-dspark.sh` / `start-api-server-dspark.bat` | 163840 | DSpark（认证路线） | 单请求 | 已实测的单流加速档，**镜像已删除、需先 `docker pull`（18 GB）** |
+| SparkInfer（本节） | `sparkinfer-serve.sh` / `start-api-server-sparkinfer.bat` | DSpark 153600 / AR 262144 | DSpark（引擎内） | 聚合吞吐不随并发增长 | 长上下文与单流的可选档 |
+| llama.cpp + GGUF | `start-api-server-gguf.bat` | 128000 | — | auto | GGUF 权重专用 |
+
+> 四条路线里任何时刻只启一条（共用 8192 端口，且 27B 权重占满显存）。删掉某个大镜像后 **D 盘可用空间不会自动变大**（WSL 的 ext4.vhdx 非稀疏），需要跑一次 `scripts/reclaim-wsl-space.bat`（管理员）离线压缩，见 Q17。
 
 ---
 
@@ -380,7 +423,7 @@ resp = client.chat.completions.create(
 6. **默认只在本机**：默认绑定 127.0.0.1，不向局域网或互联网开放端口。想开放局域网访问，在三个启动器的启动前菜单选 `1`（或用 `start-api-server-lan.bat` / `direct.sh --lan`）并配合 Windows 端口转发 + 防火墙，详见 5.0 节；**该模式没有鉴权，请只在可信网络使用**。
 7. **永远离线**：脚本强制 `HF_HUB_OFFLINE=1` / `TRANSFORMERS_OFFLINE=1`，只读你指定的本地模型目录。如果你的目录里没有模型，报错会提示你，而不是偷偷去下载。
 8. **改版本要谨慎**：环境版本全部钉死（vLLM 0.27.1 + CUDA 13 + Python 3.14），这是模型卡验证过的组合。升级走 `wsl2-env.sh create --force`（会用环境变量指定的新版本重建），不建议手动 `pip install` 乱改。
-9. **测试**：项目自带四套自动化测试（`bash tests/run-tests.sh`、`tests/preflight-tests.sh`、`tests/serve-tests.sh`、`tests/fullcontext-tests.sh`），用假工具模拟环境，可在没有 WSL/GPU 的机器上跑，改代码后跑一遍防回归。
+9. **测试**：项目自带五套自动化测试（`bash tests/run-tests.sh`、`tests/preflight-tests.sh`、`tests/serve-tests.sh`、`tests/fullcontext-tests.sh`、`tests/sparkinfer-tests.sh`），用假工具模拟环境，可在没有 WSL/GPU 的机器上跑，改代码后跑一遍防回归。
 
 ---
 
@@ -453,3 +496,20 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh create --prefix ~
 
 修复内容（全部已实测验证）：四个 `.bat` 统一为 **CRLF + 无 BOM + 纯 ASCII**（菜单/提示改为英文）；全部 `.sh` 转回 **LF**；修 UAC 提权（空参数分支 + 拒绝后 `pause` 不闪退）；`--lan` 参数改为逐参数过滤（绕开 cmd 对空变量做字符串替换会输出 `--lan=` 垃圾的陷阱）；`echo` 内容带括号的 `if/else` 块改成 `goto` 分流（绕开括号块解析错误）。同时新增根目录 `.gitattributes`（`*.bat eol=crlf`、`*.sh eol=lf`、`tests/fakebin/vllm eol=lf`）并已 `git add --renormalize` 规范化，防止以后再被 autocrlf 弄乱。
 现在的行为：双击任意 `.bat` 会停留显示菜单（1 开 LAN / 2 默认 / 0 退出），提权时正常弹 UAC，服务启动后停在窗口，Ctrl-C 停止后显示结果并等你按键——不再闪退。
+
+**Q15：双击 `start-api-server-mtp.bat` 起不来 / MTP 加速没了？**
+**预期结果，不是故障。** 2026-09-16 的模型更新删掉了 MTP 头：`config.json` 的 `text_config.mtp_num_hidden_layers` 变成 `0`，两个权重分片里 0 个 `mtp.*` 张量（索引与 safetensors 文件头一致，`hf_quant_config.json` 里也不再有 `mtp` 条目）。vLLM 会按配置去构造 MTP 草稿头，结果是"0 层 + 无权重"，所以 `--spec-method mtp` 在这份权重上用不了；该启动器已保留但标注为失效（文件头与启动窗口都会打印警告），验证明细见 4.6 节。要投机解码请改用 `scripts/start-api-server-dspark.bat`（SGLang + DSpark，本机实测单流 1.80×，4.8 节；**注意它的镜像已于 2026-09-19 从本机删除，需先 `docker pull` 约 18 GB**）或 `scripts/start-api-server-sparkinfer.bat`（SparkInfer 引擎内 DSpark，镜像仍在，见 4.9 节）；只要普通 vLLM 就用 `scripts/start-api-server-vllm.bat`。
+
+**Q17：删掉一个大镜像（比如 SGLang 那 41.9 GB）后，D 盘可用空间怎么没变大？**
+因为 WSL 的磁盘是**非稀疏**的动态 VHDX：删文件只释放发行版**内部**的 ext4 空间，Windows 侧的 `D:\WSL\ext4.vhdx` 不会自己缩小，`fstrim` 也只把块清零、不交还给 Windows。想自动回收得开稀疏模式，但微软对**已存在的发行版**直接拒绝了：`wsl --manage Ubuntu --set-sparse true` 返回 `Wsl/Service/E_INVALIDARG`，提示 *"由于潜在的数据损坏，目前已禁用稀疏 VHD 支持"*，必须加 `--allow-unsafe` 才肯转换——**本项目不使用这个开关**（它持有你的模型、venv、llama.cpp，不值得为省事冒险）。
+安全做法是**离线压缩已停止的 VHDX**（挂载为只读 → compact → 卸载，官方文档路径）：
+
+```powershell
+# 管理员权限；脚本自己会请求 UAC，跑完自动重启 WSL 并打印前后对比
+D:\Code\MJ-Project\ai-model-nvfp4\scripts\reclaim-wsl-space.bat
+```
+
+本次实测：`D:` 可用 **129.33 → 171.71 GiB（+42.38）**，`ext4.vhdx` **95.21 → 52.83 GiB**。压缩前先在 WSL 里跑一次 `sudo fstrim -v /` 把刚删掉的块清零，压缩效果最好。脚本用的是 `diskpart`（`select vdisk` / `attach vdisk readonly` / `compact vdisk` / `detach vdisk`），发行版内容不会被改动；代价是它会先 `wsl --shutdown`，所以 WSL 里正在跑的服务会被停掉。
+
+**Q16：原来双击的 `start-api-server.bat` 找不到了？**
+它已重命名为 **`scripts/start-api-server-vllm.bat`**（行为不变，含同样的局域网访问菜单），只是为了让 vLLM 路线的名字和 `-mtp` / `-gguf` / `-dspark` / `-sparkinfer` 对齐。桌面上如果放过旧副本，请改用 `scripts` 目录里的新文件。

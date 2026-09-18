@@ -1,0 +1,256 @@
+{
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 163840,
+    "max_output_tokens": 16384
+  },
+  "max_tokens": 192,
+  "arms": [
+    {
+      "arm": "text-dspark",
+      "requests": 8,
+      "decode_median": 65.0,
+      "decode_mean": 76.3,
+      "decode_min": 55.8,
+      "decode_max": 109.0,
+      "ttft_median_ms": 161.9,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 8.0,
+        "sparkinfer_speculative_tokens_total": 1016.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 680.8,
+          "wall_s": 1.939,
+          "completion_tokens": 76,
+          "prompt_tokens": 25,
+          "decode_tps_client": 59.6,
+          "server_ttft_ms": 648.662519,
+          "server_generation_ms": 1904.421958,
+          "server_decode_tps": 39.907122305927544,
+          "text": "The daytime sky appears blue due to a phenomenon called Rayleigh scattering, where sunlight interacts with molecules in Earth's atmosphere. Because blue light has a shorter wavelength than other colors in the visible spectrum, it scatters much more strongly off the gas molecules, spreading across the sky and reaching our eyes from all directions, while longer wavelengths like red and orange pass through with less scattering.",
+          "label": "chat",
+          "prompt": "Explain in one short paragraph why the daytime sky is blue."
+        },
+        {
+          "ttft_ms": 249.4,
+          "wall_s": 1.115,
+          "completion_tokens": 53,
+          "prompt_tokens": 35,
+          "decode_tps_client": 60.1,
+          "server_ttft_ms": 235.537507,
+          "server_generation_ms": 1099.774934,
+          "server_decode_tps": 48.191678462095226,
+          "text": "{\n  \"id\": \"prod-8842\",\n  \"name\": \"NebulaSync Pro\",\n  \"tags\": [\n    \"cloud\",\n    \"sync\",\n    \"enterprise\"\n  ]\n}",
+          "label": "json",
+          "prompt": "Return a JSON object with keys id, name, tags for a fictional product. Output only JSON, no prose."
+        },
+        {
+          "ttft_ms": 199.4,
+          "wall_s": 0.842,
+          "completion_tokens": 71,
+          "prompt_tokens": 30,
+          "decode_tps_client": 109.0,
+          "server_ttft_ms": 192.688806,
+          "server_generation_ms": 833.336819,
+          "server_decode_tps": 85.19964362693064,
+          "text": "```python\ndef reverse_linked_list(head):\n    \"\"\"Reverse a singly linked list in place and return the new head.\"\"\"\n    prev = None\n    curr = head\n    while curr:\n        next_node = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_node\n    return prev\n```",
+          "label": "code",
+          "prompt": "Write a Python function that reverses a singly linked list, with a short docstring."
+        },
+        {
+          "ttft_ms": 163.1,
+          "wall_s": 1.989,
+          "completion_tokens": 192,
+          "prompt_tokens": 44,
+          "decode_tps_client": 104.6,
+          "server_ttft_ms": 156.882103,
+          "server_generation_ms": 1981.301738,
+          "server_decode_tps": 96.90598676494979,
+          "text": "Here is the step-by-step calculation to determine the arrival time.\n\n### Step 1: Calculate the travel duration\nTo find out how long the trip takes, we use the formula:\n$$ \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} $$\n\nGiven:\n*   Distance = $210 \\text{ km}$\n*   Speed = $84 \\text{ km/h}$\n\n$$ \\text{Time} = \\frac{210}{84} \\text{ hours} $$\n\nTo simplify the fraction $\\frac{210}{84}$:\n1.  Divide numerator and denominator by 42:\n    $$ 210 \\div 42 = 5 $$\n    $$ 84 \\div 42 = 2 $$\n2.  So, the time is:\n    $$ \\frac{5}{",
+          "label": "math",
+          "prompt": "A train leaves at 14:20 and travels 210 km at 84 km/h. Show the arrival time step by step."
+        },
+        {
+          "ttft_ms": 84.0,
+          "wall_s": 1.699,
+          "completion_tokens": 101,
+          "prompt_tokens": 24,
+          "decode_tps_client": 61.9,
+          "server_ttft_ms": 78.563001,
+          "server_generation_ms": 1692.445832,
+          "server_decode_tps": 59.67694687199891,
+          "text": "TCP is connection-oriented, while UDP is connectionless.\nTCP guarantees reliable data delivery through acknowledgments and retransmissions, whereas UDP does not.\nTCP uses a sliding window mechanism for flow control, but UDP has no built-in flow control.\nTCP data is delivered in the exact order it was sent, while UDP packets may arrive out of order.\nTCP headers are larger (20 bytes minimum) compared to UDP headers (8 bytes), making UDP more efficient for small data transfers.",
+          "label": "list",
+          "prompt": "List five differences between TCP and UDP, one per line."
+        },
+        {
+          "ttft_ms": 159.1,
+          "wall_s": 3.401,
+          "completion_tokens": 182,
+          "prompt_tokens": 26,
+          "decode_tps_client": 55.8,
+          "server_ttft_ms": 154.708702,
+          "server_generation_ms": 3395.778565,
+          "server_decode_tps": 53.595956425386056,
+          "text": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. It begins with evaporation, where solar energy heats water from oceans, lakes, and rivers, turning it into vapor. This vapor rises into the atmosphere and cools, condensing into clouds through a process called condensation. When these droplets combine and grow heavy, they fall back to Earth as precipitation, including rain, snow, sleet, or hail.\n\nOnce on the ground, water collects in bodies of water or infiltrates the soil, becoming groundwater. Some of this water is absorbed by plants and released back into the air through transpiration. Eventually, surface runoff and groundwater flow back into oceans and rivers, restarting the cycle. This perpetual process is vital for regulating climate, replenishing freshwater resources, and sustaining all life on the planet.",
+          "label": "prose",
+          "prompt": "Summarize the water cycle in about 120 words."
+        },
+        {
+          "ttft_ms": 160.8,
+          "wall_s": 1.788,
+          "completion_tokens": 149,
+          "prompt_tokens": 36,
+          "decode_tps_client": 90.9,
+          "server_ttft_ms": 154.547303,
+          "server_generation_ms": 1781.703635,
+          "server_decode_tps": 83.62782511806459,
+          "text": "[\n  {\n    \"city\": \"Tokyo\",\n    \"population\": 13960000\n  },\n  {\n    \"city\": \"Yokohama\",\n    \"population\": 3740000\n  },\n  {\n    \"city\": \"Osaka\",\n    \"population\": 2750000\n  },\n  {\n    \"city\": \"Nagoya\",\n    \"population\": 2320000\n  },\n  {\n    \"city\": \"Sapporo\",\n    \"population\": 1960000\n  }\n]",
+          "label": "json2",
+          "prompt": "Return a JSON array of 5 objects, each with keys city and population, for major Japanese cities. Only JSON."
+        },
+        {
+          "ttft_ms": 159.8,
+          "wall_s": 2.958,
+          "completion_tokens": 192,
+          "prompt_tokens": 35,
+          "decode_tps_client": 68.2,
+          "server_ttft_ms": 155.384103,
+          "server_generation_ms": 2952.996359,
+          "server_decode_tps": 65.01870529397425,
+          "text": "```bash\nfind /var -type f -exec du -b {} + | sort -rn | head -10\n```\n\n### Explanation\n\n1. **`find /var -type f`**: Recursively searches under `/var` for regular files only.\n2. **`-exec du -b {} +`**: For each found file, runs `du -b` (which reports disk usage in bytes, including apparent size) and batches the arguments efficiently with `+`.\n3. **`sort -rn`**: Sorts the output numerically (`-n`) in reverse order (`-r`), so the largest files appear first.\n4. **`head -10`**: Takes only the first 10 lines, i.e., the 10 largest files.\n\n> **Note**: `du -b` may not be available on all systems (e.g., macOS uses `du -",
+          "label": "code2",
+          "prompt": "Write a bash one-liner that lists the 10 largest files under /var, then explain it briefly."
+        }
+      ]
+    },
+    {
+      "arm": "text-ar",
+      "requests": 4,
+      "decode_median": 70.5,
+      "decode_mean": 70.5,
+      "decode_min": 70.3,
+      "decode_max": 70.6,
+      "ttft_median_ms": 98.5,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 0.0,
+        "sparkinfer_speculative_tokens_total": 0.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 99.8,
+          "wall_s": 1.593,
+          "completion_tokens": 106,
+          "prompt_tokens": 25,
+          "decode_tps_client": 70.3,
+          "server_ttft_ms": 95.550702,
+          "server_generation_ms": 1587.867632,
+          "server_decode_tps": 66.75619419641902,
+          "text": "The daytime sky appears blue due to a phenomenon called Rayleigh scattering, which occurs when sunlight interacts with molecules in Earth's atmosphere. As sunlight passes through the air, it scatters off gas molecules like nitrogen and oxygen; because blue light has a shorter wavelength than other colors, it scatters much more efficiently and spreads throughout the sky in all directions. Consequently, when we look up, our eyes detect this scattered blue light, giving the sky its characteristic hue, while longer wavelengths like red and orange pass through with less interference.",
+          "label": "chat",
+          "prompt": "Explain in one short paragraph why the daytime sky is blue."
+        },
+        {
+          "ttft_ms": 98.5,
+          "wall_s": 0.977,
+          "completion_tokens": 63,
+          "prompt_tokens": 35,
+          "decode_tps_client": 70.6,
+          "server_ttft_ms": 96.105102,
+          "server_generation_ms": 973.866819,
+          "server_decode_tps": 64.6905703848608,
+          "text": "{\n  \"id\": \"PRD-4492-X\",\n  \"name\": \"NeuroSync Headband\",\n  \"tags\": [\n    \"wearable\",\n    \"biofeedback\",\n    \"meditation\",\n    \"premium\"\n  ]\n}",
+          "label": "json",
+          "prompt": "Return a JSON object with keys id, name, tags for a fictional product. Output only JSON, no prose."
+        },
+        {
+          "ttft_ms": 97.4,
+          "wall_s": 1.088,
+          "completion_tokens": 71,
+          "prompt_tokens": 30,
+          "decode_tps_client": 70.6,
+          "server_ttft_ms": 95.074502,
+          "server_generation_ms": 1085.200521,
+          "server_decode_tps": 65.42569656580547,
+          "text": "```python\ndef reverse_linked_list(head):\n    \"\"\"Reverse a singly linked list in place and return the new head.\"\"\"\n    prev = None\n    current = head\n    while current:\n        next_node = current.next\n        current.next = prev\n        prev = current\n        current = next_node\n    return prev\n```",
+          "label": "code",
+          "prompt": "Write a Python function that reverses a singly linked list, with a short docstring."
+        },
+        {
+          "ttft_ms": 98.6,
+          "wall_s": 2.811,
+          "completion_tokens": 192,
+          "prompt_tokens": 44,
+          "decode_tps_client": 70.4,
+          "server_ttft_ms": 95.774801,
+          "server_generation_ms": 2807.269114,
+          "server_decode_tps": 68.39387041394991,
+          "text": "Here is the step-by-step calculation to determine the train's arrival time.\n\n### Step 1: Calculate the travel duration\nTo find out how long the trip takes, we use the formula:\n$$ \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} $$\n\nGiven:\n*   Distance ($d$) = $210 \\text{ km}$\n*   Speed ($v$) = $84 \\text{ km/h}$\n\n$$ \\text{Time} = \\frac{210}{84} $$\n\nTo simplify the fraction $\\frac{210}{84}$:\n1.  Both numbers are divisible by 14.\n    *   $210 \\div 14 = 15$\n    *   $84 \\div 14 = 6$\n2.  So, $\\text{Time",
+          "label": "math",
+          "prompt": "A train leaves at 14:20 and travels 210 km at 84 km/h. Show the arrival time step by step."
+        }
+      ]
+    },
+    {
+      "arm": "image",
+      "requests": 3,
+      "decode_median": 66.9,
+      "decode_mean": 67.6,
+      "decode_min": 66.4,
+      "decode_max": 69.4,
+      "ttft_median_ms": 776.6,
+      "metrics_delta": {
+        "sparkinfer_speculative_runs_total": 0.0,
+        "sparkinfer_speculative_tokens_total": 0.0,
+        "sparkinfer_speculative_handoffs_total": 0.0,
+        "sparkinfer_prefix_cache_hits_total": 0
+      },
+      "rows": [
+        {
+          "ttft_ms": 780.8,
+          "wall_s": 0.871,
+          "completion_tokens": 7,
+          "prompt_tokens": 669,
+          "decode_tps_client": 66.9,
+          "server_ttft_ms": 744.678404,
+          "server_generation_ms": 833.636004,
+          "server_decode_tps": 8.396950187386581,
+          "text": "E-7741",
+          "label": "img_code",
+          "prompt": "Read the clearance code shown in this image. Reply with only the code."
+        },
+        {
+          "ttft_ms": 776.6,
+          "wall_s": 0.942,
+          "completion_tokens": 12,
+          "prompt_tokens": 674,
+          "decode_tps_client": 66.4,
+          "server_ttft_ms": 738.891803,
+          "server_generation_ms": 903.146004,
+          "server_decode_tps": 13.286888218352788,
+          "text": "circle: red\nsquare: green\ntriangle: blue",
+          "label": "img_shapes",
+          "prompt": "Name the three shapes in this image and their colors, one per line as 'shape: color'."
+        },
+        {
+          "ttft_ms": 745.2,
+          "wall_s": 1.365,
+          "completion_tokens": 44,
+          "prompt_tokens": 662,
+          "decode_tps_client": 69.4,
+          "server_ttft_ms": 708.495304,
+          "server_generation_ms": 1326.814307,
+          "server_decode_tps": 33.16213864130423,
+          "text": "A red circle, green square, and blue triangle are displayed below the text “AURORA-9 CLEARANCE CODE: E-7741” and “shape check: circle / square / triangle.”",
+          "label": "img_describe",
+          "prompt": "Describe this image in one short sentence."
+        }
+      ]
+    }
+  ]
+}

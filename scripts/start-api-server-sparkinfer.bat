@@ -1,31 +1,28 @@
 @echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions
-title Qwen3.8-27B API Server - DSpark (SGLang + Docker)
+title Qwen3.8-27B API Server - SparkInfer (NVFP4, optional DSpark)
 
 rem =====================================================================
-rem  start-api-server-dspark.bat - double-click Windows launcher for
-rem  scripts/sglang-dspark.sh: runs the certified SGLang image in Docker
-rem  inside WSL2 Ubuntu and keeps the service in THIS console window, so
-rem  SGLang's load progress and request log are visible here and Ctrl-C
-rem  stops the container. After the server stops it runs "wsl --shutdown"
-rem  to fully shut down the WSL VM and release its GPU VRAM.
+rem  start-api-server-sparkinfer.bat - double-click Windows launcher for
+rem  scripts/sparkinfer-serve.sh: runs the model author's SparkInfer image
+rem  in Docker inside WSL2 Ubuntu and keeps the service in THIS console
+rem  window, so the engine's load progress and request log are visible
+rem  here and Ctrl-C stops the container. After the server stops it runs
+rem  "wsl --shutdown" to fully shut down the WSL VM and release its VRAM.
 rem
-rem  !! THE IMAGE IS NO LONGER ON THIS MACHINE (removed 2026-09-19) !!
-rem  lmsysorg/sglang:qwen38-27b was deleted to free 41.9 GB of docker disk.
-rem  The preflight below fails closed with
-rem    image 'lmsysorg/sglang:qwen38-27b' is not present locally.
-rem    fix: pull it (about 18 GB): docker pull lmsysorg/sglang:qwen38-27b
-rem  Nothing is downloaded automatically - re-pull explicitly to use this
-rem  route again. The vLLM and SparkInfer launchers are unaffected (their
-rem  images/venvs are separate). Record and measurements:
-rem  result/sglang-image-removal-result.md, README 4.8 / Q17.
+rem  This is the THIRD engine route for the same NVFP4 weights (vLLM is
+rem  the daily route, SGLang is the certified DSpark route). SparkInfer
+rem  serves on the same fixed port 8192 as every other launcher, so
+rem  clients keep one endpoint; only one engine runs at a time because
+rem  the 27B weights hold the VRAM.
 rem
-rem  This is the speculative-decoding path: SGLang + the DSpark draft
-rem  (1.8x decode throughput at the same engine). It is NOT a vLLM
-rem  launcher, but it serves on the same fixed port 8192 as
-rem  start-api-server-vllm.bat / -mtp / -gguf, so clients keep one endpoint;
-rem  only one engine runs at a time (the 27B model holds the VRAM).
+rem  DSpark is ON by default here (serve-dspark). It only engages for
+rem  greedy, plain-text, single-request traffic: pass a request with
+rem  "temperature": 0 and no tools/images, and confirm engagement with
+rem  the sparkinfer_speculative_runs_total counter on /metrics. Add
+rem  --no-spec to serve autoregressive only (that also raises the context
+rem  default from 153600 to the native 262144).
 rem
 rem  The container is deliberately run in the FOREGROUND with no restart
 rem  policy: WSL reclaims the distro as soon as its last session ends
@@ -36,24 +33,25 @@ rem  keep-alive; Ctrl-C is the stop button.
 rem
 rem  Before the service starts, this launcher asks whether to enable LAN
 rem  access: 1 enable / 2 disable (default) / 0 quit. Enable needs no
-rem  change on the SGLang side (the container already binds 0.0.0.0 inside
-rem  WSL) - it adds the Windows portproxy + firewall inbound rule, which
-rem  are what actually expose the port beyond this PC, and re-launches
-rem  elevated via UAC when needed. An internal --lan-enabled argument
-rem  skips the menu after elevation.
+rem  change on the SparkInfer side (the container already binds 0.0.0.0
+rem  inside WSL) - it adds the Windows portproxy + firewall inbound rule,
+rem  which are what actually expose the port beyond this PC, and
+rem  re-launches elevated via UAC when needed. An internal --lan-enabled
+rem  argument skips the menu after elevation.
 rem
 rem  Overridable environment variables:
-rem    MODEL_DIR   WSL path of the target model folder (default below)
-rem    DRAFT_DIR   WSL path of the DSpark draft folder (default below)
-rem    WSL_DISTRO  WSL distribution name (default Ubuntu)
-rem    SERVE_PORT  port (default 8192, fixed by convention across launchers)
-rem    SGLANG_IMAGE / SGLANG_NAME   image tag / container name
-rem  Command-line options are forwarded to sglang-dspark.sh, e.g.
-rem  --context-length 65536, --no-spec, --dry-run.
+rem    MODEL_DIR        WSL path of the target model folder (default below)
+rem    DRAFT_DIR        WSL path of the DSpark draft folder (default below)
+rem    WSL_DISTRO       WSL distribution name (default Ubuntu)
+rem    SERVE_PORT       port (default 8192, fixed by convention)
+rem    SPARKINFER_IMAGE / SPARKINFER_NAME   image tag / container name
+rem    SPARKINFER_CTX / SPARKINFER_SAMPLING_DEFAULTS / SPARKINFER_KV_INT8
+rem  Command-line options are forwarded to sparkinfer-serve.sh, e.g.
+rem  --context-length 65536, --no-spec, --model-name X, --dry-run.
 rem
 rem  The WSL side runs as root: docker needs it on this machine because user
 rem  kami is not in the docker group. That only affects who runs docker -
-rem  both model folders are mounted read-only.
+rem  both model folders are mounted read-only and nothing is downloaded.
 rem =====================================================================
 
 rem --- defaults (edit here or set the env vars above) ---
@@ -61,8 +59,8 @@ if not defined MODEL_DIR set "MODEL_DIR=/home/kami/models/Qwen3.8-27B-NVFP4-RTX5
 if not defined DRAFT_DIR set "DRAFT_DIR=/home/kami/models/Qwen3.8-27B-DSpark-NVFP4"
 if not defined WSL_DISTRO set "WSL_DISTRO=Ubuntu"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
-if not defined SGLANG_IMAGE set "SGLANG_IMAGE=lmsysorg/sglang:qwen38-27b"
-if not defined SGLANG_NAME set "SGLANG_NAME=qwen38-sglang"
+if not defined SPARKINFER_IMAGE set "SPARKINFER_IMAGE=ghcr.io/gittensor-ai-lab/sparkinfer-qwen38:0.5.10"
+if not defined SPARKINFER_NAME set "SPARKINFER_NAME=qwen38-sparkinfer"
 
 rem --- LAN menu (before the service starts) ---
 rem --lan-enabled is internal: the elevated copy skips the menu.
@@ -129,23 +127,23 @@ rem --- convert this script's Windows folder to a WSL path ---
 set "SCRIPT_WIN=%~dp0"
 set "SCRIPT_WIN=%SCRIPT_WIN:~0,-1%"
 
-rem --- locate the project's scripts/sglang-dspark.sh ---
+rem --- locate the project's scripts/sparkinfer-serve.sh ---
 rem The launcher may sit anywhere (e.g. a copy on the Desktop). Try, in
 rem order: an explicit PROJECT_DIR, this script's own folder upwards, then
 rem the default project location on this machine.
 if not defined PROJECT_DIR set "PROJECT_DIR=D:\Code\MJ-Project\ai-model-nvfp4"
 set "PROJ=%PROJECT_DIR%"
-if exist "%PROJ%\scripts\sglang-dspark.sh" goto found_launcher
+if exist "%PROJ%\scripts\sparkinfer-serve.sh" goto found_launcher
 set "PROJ=%SCRIPT_WIN%"
 :find_launcher
-if exist "%PROJ%\scripts\sglang-dspark.sh" goto found_launcher
+if exist "%PROJ%\scripts\sparkinfer-serve.sh" goto found_launcher
 set "PARENT=%PROJ%"
 for %%I in ("%PROJ%\.") do set "PROJ=%%~dpI"
 set "PROJ=%PROJ:~0,-1%"
 if "%PROJ%"=="%PARENT%" goto no_launcher
 goto find_launcher
 :no_launcher
-echo ERROR: scripts\sglang-dspark.sh not found.
+echo ERROR: scripts\sparkinfer-serve.sh not found.
 echo Looked at: %PROJECT_DIR% and every folder above %SCRIPT_WIN%.
 echo Set PROJECT_DIR to the project folder if it lives elsewhere, e.g.:
 echo   set PROJECT_DIR=D:\Code\MJ-Project\ai-model-nvfp4
@@ -162,20 +160,20 @@ set "DRIVE=%PROJ:~0,1%"
 for %%D in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (
   if /I "%DRIVE%"=="%%D" set "DRIVE=%%D"
 )
-set "SGLANG_WIN=%PROJ%\scripts\sglang-dspark.sh"
-set "SGLANG_SH=%SGLANG_WIN:\=/%"
-set "SGLANG_SH=/mnt/%DRIVE%/%SGLANG_SH:~3%"
-rem wsl.exe does not strip quotes from -d, and joins everything after --
-rem into one command line parsed by bash, so the path must not be quoted;
-rem spaces in it are escaped for bash instead.
-set "SGLANG_SH=%SGLANG_SH: =\ %"
+set "SPARKINFER_WIN=%PROJ%\scripts\sparkinfer-serve.sh"
+set "SPARKINFER_SH=%SPARKINFER_WIN:\=/%"
+set "SPARKINFER_SH=/mnt/%DRIVE%/%SPARKINFER_SH:~3%"
+rem wsl.exe does not strip quotes from -d, and joins everything after -- into
+rem one command line parsed by bash, so the path must not be quoted; spaces in
+rem it are escaped for bash instead.
+set "SPARKINFER_SH=%SPARKINFER_SH: =\ %"
 
 rem --- forward command-line options; default the two model dirs when absent ---
-rem Drop the internal --lan-enabled re-launch flag and any CLI --lan (the
-rem menu decides; LAN_FLAG is added separately below). Do this argument by
-rem argument: on an EMPTY %* the string-substitute form "set ARGS=%ARGS:--lan=%"
-rem outputs a literal "--lan=" (cmd quirk), and --lan-enabled contains the
-rem substring --lan, so plain substitution is unsafe either way.
+rem Drop the internal --lan-enabled re-launch flag and any CLI --lan (the menu
+rem decides; LAN_FLAG is added separately below). Do this argument by argument:
+rem on an EMPTY %* the string-substitute form "set ARGS=%ARGS:--lan=%" outputs a
+rem literal "--lan=" (cmd quirk), and --lan-enabled contains the substring
+rem --lan, so plain substitution is unsafe either way.
 set "ARGS="
 :arg_loop
 if "%~1"=="" goto args_done
@@ -187,17 +185,17 @@ shift
 goto arg_loop
 :args_done
 echo %ARGS% | findstr /C:"--model-dir" >nul || set "ARGS=%ARGS% --model-dir %MODEL_DIR%"
-echo %ARGS% | findstr /C:"--draft-dir" >nul || set "ARGS=%ARGS% --draft-dir %DRAFT_DIR%"
+echo %ARGS% | findstr /C:"--no-spec" >nul || echo %ARGS% | findstr /C:"--draft-dir" >nul || set "ARGS=%ARGS% --draft-dir %DRAFT_DIR%"
 
 set "LAN_FLAG="
 if defined ENABLE_LAN set "LAN_FLAG=--lan"
 
 rem --- share the optional env vars with WSL (WSLENV) ---
-set "WSLENV=SERVE_PORT/u:SGLANG_IMAGE/u:SGLANG_NAME/u"
+set "WSLENV=SERVE_PORT/u:SPARKINFER_IMAGE/u:SPARKINFER_NAME/u:SPARKINFER_CTX/u:SPARKINFER_SAMPLING_DEFAULTS/u:SPARKINFER_KV_INT8/u:SPARKINFER_MODEL_NAME/u"
 
-echo Starting the Qwen3.8-27B DSpark API server via WSL (%WSL_DISTRO%)...
-echo   launcher: %SGLANG_SH%
-echo   image   : %SGLANG_IMAGE%  (container %SGLANG_NAME%)
+echo Starting the Qwen3.8-27B SparkInfer API server via WSL (%WSL_DISTRO%)...
+echo   launcher: %SPARKINFER_SH%
+echo   image   : %SPARKINFER_IMAGE%  (container %SPARKINFER_NAME%)
 echo   model   : %MODEL_DIR%
 echo   draft   : %DRAFT_DIR%
 echo   options : %LAN_FLAG% %ARGS%
@@ -242,8 +240,8 @@ exit /b 1
 :portproxy_ok
 
 rem --- Windows Firewall: allow inbound TCP on the port ---
-netsh advfirewall firewall delete rule name="Qwen3.8-27B DSpark API LAN %SERVE_PORT%" >nul 2>&1
-netsh advfirewall firewall add rule name="Qwen3.8-27B DSpark API LAN %SERVE_PORT%" dir=in action=allow protocol=TCP localport=%SERVE_PORT% >nul 2>&1
+netsh advfirewall firewall delete rule name="Qwen3.8-27B SparkInfer API LAN %SERVE_PORT%" >nul 2>&1
+netsh advfirewall firewall add rule name="Qwen3.8-27B SparkInfer API LAN %SERVE_PORT%" dir=in action=allow protocol=TCP localport=%SERVE_PORT% >nul 2>&1
 if errorlevel 1 goto fw_failed
 echo   firewall : inbound TCP %SERVE_PORT% allowed
 goto fw_done
@@ -254,9 +252,12 @@ echo if Windows Firewall is enabled.
 echo.
 
 :start_server
-echo The server stays in this window. Press Ctrl-C to stop it (SGLang drains
-echo the in-flight request first); loading takes about a minute and the ready
-echo line is "The server is fired up and ready to roll!".
+echo The server stays in this window. Press Ctrl-C to stop it; loading takes
+echo under a minute and the ready lines are:
+echo   [sparkinfer-server] model ready: /models/qwen38-nvfp4
+echo   [sparkinfer-server] OpenAI-compatible API on http://0.0.0.0:8080
+echo There must be NO line containing "[sparkinfer] downloading" - that would
+echo mean it is fetching weights instead of using the read-only mount.
 if defined ENABLE_LAN (
   echo portproxy and firewall rule are removed when it stops.
 ) else (
@@ -267,14 +268,14 @@ echo.
 rem wsl runs as a child process here: the container stays inside it, this
 rem window is the service console, and after wsl exits the batch continues
 rem to the cleanup below. -u root is required for docker on this machine.
-wsl -d %WSL_DISTRO% -u root -- bash %SGLANG_SH% start %LAN_FLAG% %ARGS%
+wsl -d %WSL_DISTRO% -u root -- bash %SPARKINFER_SH% start %LAN_FLAG% %ARGS%
 set "RC=%ERRORLEVEL%"
 
 if not defined ENABLE_LAN goto after_lan_cleanup
 rem --- cleanup: remove the forward + firewall rule (the WSL IP may change on
 rem     the next boot; a stale forward must not linger) ---
 netsh interface portproxy delete v4tov4 listenport=%SERVE_PORT% listenaddress=0.0.0.0 >nul 2>&1
-netsh advfirewall firewall delete rule name="Qwen3.8-27B DSpark API LAN %SERVE_PORT%" >nul 2>&1
+netsh advfirewall firewall delete rule name="Qwen3.8-27B SparkInfer API LAN %SERVE_PORT%" >nul 2>&1
 :after_lan_cleanup
 
 rem The API server has stopped (Ctrl-C or otherwise). Fully shut down the
@@ -299,10 +300,7 @@ if "%WSLRC%"=="0" (
 if defined ENABLE_LAN (
   echo LAN portproxy and firewall rule removed.
 )
-echo Note: a stopped container is kept for post-mortem; inspect it later with
-echo   wsl -d %WSL_DISTRO% -u root -- docker logs %SGLANG_NAME%
-echo The 2026-09-19 qwen38-sglang container was removed together with the
-echo image; its last log is archived inside WSL at
-echo   ~/logs/qwen38-sglang-2026-09-19.log
+echo Note: the stopped container is kept; inspect it later with
+echo   wsl -d %WSL_DISTRO% -u root -- docker logs %SPARKINFER_NAME%
 echo Press any key to close this window.
 pause

@@ -21,6 +21,13 @@
 #   sudo bash scripts/sglang-dspark.sh start \
 #     --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090 \
 #     --draft-dir /home/kami/models/Qwen3.8-27B-DSpark-NVFP4
+#
+# NOTE (2026-09-19): the image is no longer present on this machine - it was
+# deleted to free 41.9 GB of docker disk (digest
+# lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1,
+# see result/sglang-image-removal-result.md). The preflight below therefore
+# exits 1 with a "pull it (about 18 GB)" hint; this script never pulls by
+# itself, so nothing is downloaded unless you run that docker pull yourself.
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

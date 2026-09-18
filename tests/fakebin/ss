@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Fake ss for tests/sparkinfer-tests.sh: the SparkInfer launcher only asks it
+# whether a port is already listening inside WSL.
+#
+# Controls:
+#   FAKE_SS_LISTEN   port number to report as LISTENing (default: nothing
+#                    listens, i.e. every port is free)
+if [ -n "${FAKE_SS_LISTEN:-}" ]; then
+  printf 'LISTEN 0      4096         0.0.0.0:%s      0.0.0.0:*\n' "$FAKE_SS_LISTEN"
+fi
+exit 0

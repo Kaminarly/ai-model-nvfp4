@@ -1,0 +1,47 @@
+{
+  "info": {
+    "model": "Qwen3.8-27B-NVFP4-DSpark",
+    "max_context": 161280,
+    "max_output_tokens": 16384
+  },
+  "prompt": "code",
+  "max_tokens": 256,
+  "rows": [
+    {
+      "decode": 351.3,
+      "ttft_ms": 351.2,
+      "ct": 256,
+      "spec_runs": 1.0
+    },
+    {
+      "decode": 337.7,
+      "ttft_ms": 121.2,
+      "ct": 256,
+      "spec_runs": 1.0
+    },
+    {
+      "decode": 337.4,
+      "ttft_ms": 121.3,
+      "ct": 256,
+      "spec_runs": 1.0
+    },
+    {
+      "decode": 338.3,
+      "ttft_ms": 120.8,
+      "ct": 256,
+      "spec_runs": 1.0
+    },
+    {
+      "decode": 350.0,
+      "ttft_ms": 120.7,
+      "ct": 256,
+      "spec_runs": 1.0
+    },
+    {
+      "decode": 339.0,
+      "ttft_ms": 120.4,
+      "ct": 256,
+      "spec_runs": 1.0
+    }
+  ]
+}

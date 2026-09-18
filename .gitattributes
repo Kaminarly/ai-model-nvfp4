@@ -5,5 +5,7 @@
 #   the command), and they are invoked from .bat launchers via WSL.
 *.bat text eol=crlf
 *.sh  text eol=lf
-# sh-style test fixture without a .sh extension
-/tests/fakebin/vllm text eol=lf
+# sh-style test fixtures with no .sh extension. core.autocrlf=true is set on
+# this machine, so without an explicit rule git rewrites these to CRLF on the
+# next checkout and bash then treats the CR as part of the command.
+/tests/fakebin/* text eol=lf
