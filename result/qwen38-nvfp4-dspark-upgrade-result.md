@@ -164,6 +164,6 @@ systemctl poweroff did not terminate the instance in 10000 ms, calling reboot(RB
    - 起服务：双击 `scripts/start-api-server-dspark.bat`（或 WSL 内 `sudo bash scripts/sglang-dspark.sh start`）；加 `--no-spec` 可跑无投机对照
    - 看日志：服务控制台窗口里直接看；停止后可用 `wsl -d Ubuntu -u root -- docker logs qwen38-sglang`
    - 停服务：控制台里 `Ctrl-C`
-5. **注意：SGLang 路线与 vLLM 路线不能同时运行。** SGLang + DSpark 实测占用 31,494 MiB，机动余量只剩 694 MiB，装不下第二个实例的权重（约 17 GB）。README 4.8 节里"所以可以和 `start-api-server.bat` 同时启动"只表达端口不冲突，**显存上是冲突的**，这句建议改成"端口不冲突，但显存只够跑其中一个"。
+5. **注意：SGLang 路线与 vLLM 路线不能同时运行。** SGLang + DSpark 实测占用 31,494 MiB，机动余量只剩 694 MiB，装不下第二个实例的权重（约 17 GB）。README 4.8 节里"所以可以和 `start-api-server-vllm.bat` 同时启动"只表达端口不冲突，**显存上是冲突的**，这句建议改成"端口不冲突，但显存只够跑其中一个"。
 6. 如需**满 262K 上下文**，按计划关掉 DSpark 单独跑；32 GB 单卡装不下"262K + DSpark"。
 7. 若要验证第 7 项在开放式文本上也能一致，需要换成长为低熵任务，或接受"无损但不逐位相同"。

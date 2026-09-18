@@ -5,7 +5,7 @@ title Qwen3.8-27B API Server - LAN mode (direct.sh --lan)
 rem =====================================================================
 rem  start-api-server-lan.bat - double-click Windows launcher that exposes
 rem  the WSL2 vLLM API to your local network (LAN). Everything
-rem  start-api-server.bat does (preflight + VRAM gate + direct vLLM boot
+rem  start-api-server-vllm.bat does (preflight + VRAM gate + direct vLLM boot
 rem  inside WSL2 Ubuntu, console stays in THIS window, wsl --shutdown after
 rem  stop) plus the three steps that make the LAN reachable:
 rem
@@ -28,7 +28,7 @@ rem
 rem  NOTE: LAN mode deliberately exposes the API to every device on your
 rem  network (no auth). Only run it on a trusted network.
 rem
-rem  Overridable environment variables (same as start-api-server.bat):
+rem  Overridable environment variables (same as start-api-server-vllm.bat):
 rem    MODEL_DIR   WSL path of the model folder (default below)
 rem    WSL_DISTRO  WSL distribution name (default Ubuntu)
 rem    SERVE_PORT  port (default 8192)
@@ -79,7 +79,7 @@ rem --- convert this script's Windows folder to a WSL path ---
 set "SCRIPT_WIN=%~dp0"
 set "SCRIPT_WIN=%SCRIPT_WIN:~0,-1%"
 
-rem --- locate the project's scripts/direct.sh (same search as start-api-server.bat) ---
+rem --- locate the project's scripts/direct.sh (same search as start-api-server-vllm.bat) ---
 if not defined PROJECT_DIR set "PROJECT_DIR=D:\Code\MJ-Project\ai-model-nvfp4"
 set "PROJ=%PROJECT_DIR%"
 if exist "%PROJ%\scripts\direct.sh" goto found_direct

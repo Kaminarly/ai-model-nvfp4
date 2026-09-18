@@ -23,7 +23,7 @@ rem  An internal --lan-enabled argument skips the menu after elevation.
 rem  The service runs in THIS console window (Ctrl-C stops it); after it
 rem  stops, "wsl --shutdown" fully shuts down the WSL VM to release VRAM.
 rem  This is the llama.cpp stack, NOT the vLLM stack - do not run it at
-rem  the same time as start-api-server.bat / start-api-server-mtp.bat
+rem  the same time as start-api-server-vllm.bat / start-api-server-mtp.bat
 rem  (all three default to port 8192).
 rem
 rem  Overridable environment variables:

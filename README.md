@@ -91,18 +91,20 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/direct.sh start \
 - 内置本机实测定案配置：上下文 **200000**、并发 **16**、显存利用率 **0.90**；可用环境变量 `FULL_MAX_MODEL_LEN` / `FULL_MAX_NUM_SEQS` / `FULL_GPU_MEM_UTIL` 覆盖。
 - 想一步步验证（冒烟 → 逐级提升 → 完整配置）用下面的 `fullcontext.sh`；想快速验证环境用 `serve.sh`（8000 端口，8192 上下文）。
 
-### 4.2.1 Windows 上双击启动（start-api-server.bat）
+### 4.2.1 Windows 上双击启动（start-api-server-vllm.bat）
 
-不想开 WSL 终端的话，直接双击 `scripts/start-api-server.bat` 就能启动和上面一模一样的服务（等价于运行 `direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`）：
+> 该启动器原名 `start-api-server.bat`，已重命名为 **`start-api-server-vllm.bat`**（行为完全不变，只为与 `-mtp` / `-gguf` / `-dspark` / `-sparkinfer` 的命名对齐）。
+
+不想开 WSL 终端的话，直接双击 `scripts/start-api-server-vllm.bat` 就能启动和上面一模一样的服务（等价于运行 `direct.sh start --model-dir /home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`）：
 
 - 自动把脚本路径转成 WSL 路径并调用 `direct.sh`，服务就在弹出的窗口里前台运行，**按 `Ctrl-C` 停止**；停止后脚本会自动执行 `wsl --shutdown` 彻底关闭 WSL（释放 WSL 占用的显存，和问题 1 里推荐的释放方式一致），然后窗口停留显示结果，按任意键关闭；
-- **直接启动默认模型**（不再有模型选择菜单）：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`，上下文 200000；想换模型就在双击前设置环境变量 `MODEL_DIR`（WSL 路径），或在**命令行**里直接传参数：`start-api-server.bat --model-dir /path/to/model --port 8001`（参数与 `direct.sh` 完全一致）；
+- **直接启动默认模型**（不再有模型选择菜单）：`/home/kami/models/Qwen3.8-27B-NVFP4-RTX5090`，上下文 200000；想换模型就在双击前设置环境变量 `MODEL_DIR`（WSL 路径），或在**命令行**里直接传参数：`start-api-server-vllm.bat --model-dir /path/to/model --port 8001`（参数与 `direct.sh` 完全一致）；
 - 正式启动前会问一次**局域网访问**：`1` 开启、`2` 关闭、`0` 退出；直接回车等于 `2`（只本机）。选 `1` 会弹 UAC 提权，然后完成端口转发和防火墙（见 5.0 节）；
 - 非默认 WSL 发行版可设 `WSL_DISTRO`（默认 `Ubuntu`）。
 
-**想要开 MTP 的版本**：双击 `scripts/start-api-server-mtp.bat`（见 4.6 节）。两个脚本的区别只有两点——MTP 开关和上下文长度（200000 vs 180000），**端口都是 8192**，所以**不要同时启动两个脚本**，会端口冲突。
+**MTP 版本（已失效，不要用）**：`scripts/start-api-server-mtp.bat` 仍保留在仓库里供参考，但它依赖的 MTP 头在 **2026-09-16 的模型更新中被删除**了（`mtp_num_hidden_layers = 0`、权重里 0 个 `mtp.*` 张量，验证过程见 4.6 节），因此它启动会失败；脚本文件头和启动窗口都会打印这条警告。需要投机解码请改用 `scripts/start-api-server-dspark.bat`（SGLang + DSpark，见 4.8 节）。
 
-**默认采样参数**：两个脚本都内置同一组服务端默认采样参数（`temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0`），作为 vLLM 的服务端默认值，请求里显式传了同名参数会覆盖它（见 5.4 节）。可用环境变量 `VLLM_SAMPLING_JSON` 覆盖整组默认值。
+**默认采样参数**：`start-api-server-vllm.bat` 内置一组服务端默认采样参数（`temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, repetition_penalty=1.0`），作为 vLLM 的服务端默认值，请求里显式传了同名参数会覆盖它（见 5.4 节）。可用环境变量 `VLLM_SAMPLING_JSON` 覆盖整组默认值（已失效的 `-mtp` 脚本设的是同一组）。
 
 ### 4.3 完整长上下文验证启动（fullcontext.sh）
 
@@ -195,7 +197,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 - **模型**：`/home/kami/models/Qwen3.6-27B-Fable-Fus-711-UnHeretic-NM-DAU-NEO-MAX-NEO/Qwen3.6-27B-Fable-Fus-711-UnHeretic-NM-DAU-NEO-MAX-NEO-Q5_K_M.gguf`（Q5_K_M，约 20GB；同目录还有 `mmproj-BF16.gguf` 视觉投影可选）；
 - **参数**（本机实测）：上下文 **128000**、KV 缓存 **q8_0**（显存减半）、并发 auto、CPU 线程 8、全量 GPU 卸载 + Flash Attention；默认仅本机监听，启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）；
 - **采样默认值**：temperature 0.7、top-k 20、top-p 0.8、min-p 0、repeat-penalty 1.0、presence-penalty 1.5；**默认关闭思考**（`--reasoning off`，直接回答不输出思考过程）；
-- **端口 8192**，与 vLLM 版脚本相同——**不要与 `start-api-server.bat` / `start-api-server-mtp.bat` 同时启动**（端口冲突）。API 同样 OpenAI 兼容，模型名 `Qwen3.6-27B-Fable-Fusion`。
+- **端口 8192**，与 vLLM 版脚本相同——**不要与 `start-api-server-vllm.bat` / `start-api-server-mtp.bat` 同时启动**（端口冲突）。API 同样 OpenAI 兼容，模型名 `Qwen3.6-27B-Fable-Fusion`。
 
 可覆盖的环境变量：`MODEL_GGUF`（GGUF 文件 WSL 路径）、`LLAMA_PORT`、`LLAMA_CTX`、`WSL_DISTRO`。想手动改参数启动，用 WSL 里的 `~/llama.cpp/llama-server.sh`（详见其文件头注释）。
 
@@ -224,7 +226,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 默认只在本机监听（`127.0.0.1`）。想让**同一局域网里的其它电脑 / 手机**访问 API，需要三步：**让服务绑定所有网卡 + Windows 端口转发到 WSL + 防火墙放行**。
 
-最简单的方式：双击 `start-api-server.bat` / `start-api-server-mtp.bat` / `start-api-server-gguf.bat` 任一，在启动前的菜单里选 **`1` 开启**（`2` 关闭，回车默认关闭；`0` 退出）。选 `1` 会弹 **UAC 管理员授权**，然后完成端口转发和防火墙。专用脚本 `scripts/start-api-server-lan.bat` 仍可用，等价于默认启动器选 `1`（vLLM 200k，无 MTP）。
+最简单的方式：双击 `start-api-server-vllm.bat` / `start-api-server-gguf.bat` 任一（`start-api-server-mtp.bat` 已失效，见 4.6 节），在启动前的菜单里选 **`1` 开启**（`2` 关闭，回车默认关闭；`0` 退出）。选 `1` 会弹 **UAC 管理员授权**，然后完成端口转发和防火墙。专用脚本 `scripts/start-api-server-lan.bat` 仍可用，等价于默认启动器选 `1`（vLLM 200k，无 MTP）。
 
 开启后会做这三步：
 
@@ -260,7 +262,7 @@ netsh advfirewall firewall add rule name="Qwen API 8192" dir=in action=allow pro
 - **只做端口转发，不做 NAT 外网映射**：访问地址是 `http://<局域网IP>:8192`，路由器外的互联网设备仍无法访问（除非你另外配端口映射，本项目不做）。
 - **Windows 防火墙当前是关闭的**（本机 `netsh advfirewall show currentprofile` 显示专用/公用均为关闭），此时防火墙规则其实用不上；但为了你在打开防火墙时也能通，脚本仍会添加规则。
 - 想换端口：`set SERVE_PORT=8001` 后再双击，或加 `--port 8001`。
-- 三个 bat（`start-api-server.bat` / `-mtp` / `-gguf`）默认端口都是 8192，**不要同时启动**；开启局域网时端口转发也只能对应其中一个。
+- 三个 bat（`start-api-server-vllm.bat` / `-mtp` / `-gguf`）默认端口都是 8192，**不要同时启动**；开启局域网时端口转发也只能对应其中一个（其中 `-mtp` 在当前模型上已失效，见 4.6 节）。
 
 
 ### 5.1 先确认服务活着（Windows PowerShell）
@@ -428,7 +430,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh create --prefix ~
 
 **Q13：模型把思考过程直接当正文输出了（没有 `<think>` 标签包裹）？**
 这是 vLLM 服务端没启用 Qwen3 推理解析器导致的，已修复（2026-08-19）。原因：这个模型的 chat template 默认开启思考（`enable_thinking=true`），vLLM 只有在带 `--reasoning-parser qwen3` 启动时才会在生成 prompt 里注入 `<think>` 起始标签，引导模型按"思考 + `</think>` + 正文"输出，并把思考提取到独立字段；没有这个参数时，模型会把思考过程当成正文直接输出。
-修复：启动参数已在 `scripts/lib/serve-lib.sh` 统一加上 `--reasoning-parser qwen3`（`serve.sh` / `direct.sh` / `fullcontext.sh` / `start-api-server.bat` 都生效），重启服务即可。修复后思考内容在响应的 `reasoning` 字段（这是 vLLM 0.27.1 的字段名；OpenAI 标准叫 `reasoning_content`），正文在 `content`，不再混在一起。如果客户端界面仍不显示思考块，多半是客户端只认 `reasoning_content` 字段名，可联系适配。
+修复：启动参数已在 `scripts/lib/serve-lib.sh` 统一加上 `--reasoning-parser qwen3`（`serve.sh` / `direct.sh` / `fullcontext.sh` / `start-api-server-vllm.bat` 都生效），重启服务即可。修复后思考内容在响应的 `reasoning` 字段（这是 vLLM 0.27.1 的字段名；OpenAI 标准叫 `reasoning_content`），正文在 `content`，不再混在一起。如果客户端界面仍不显示思考块，多半是客户端只认 `reasoning_content` 字段名，可联系适配。
 
 **Q14：双击 `scripts` 里的 `start-api-server*.bat` 窗口一闪而过 / 直接闪退？**
 已修复（2026-08-21）。闪退是四个问题叠加造成的，每一个都能让窗口在出现后立刻关闭：

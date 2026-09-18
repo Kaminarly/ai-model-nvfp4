@@ -4,7 +4,9 @@ setlocal EnableExtensions
 title Qwen3.8-27B API Server (direct.sh)
 
 rem =====================================================================
-rem  start-api-server.bat - double-click Windows launcher for
+rem  start-api-server-vllm.bat - double-click Windows launcher for
+rem  (renamed from start-api-server.bat; behavior unchanged, the name now
+rem  matches start-api-server-mtp / -gguf / -dspark / -sparkinfer)
 rem  scripts/direct.sh: runs the same preflight + VRAM gate + direct vLLM
 rem  boot inside WSL2 Ubuntu and keeps the service in THIS console window
 rem  (Ctrl-C stops it). After the server stops it runs "wsl --shutdown" to
@@ -23,6 +25,12 @@ rem    MODEL_DIR   WSL path of the model folder (default below)
 rem    WSL_DISTRO  WSL distribution name (default Ubuntu)
 rem    VLLM_SPEC_METHOD   e.g. qwen3_5_mtp to enable MTP speculative decoding
 rem                       (passed to vLLM as --spec-method)
+rem                       NOTE: the default checkpoint below no longer ships
+rem                       an MTP head (config.json text_config
+rem                       mtp_num_hidden_layers = 0, zero mtp.* tensors), so
+rem                       mtp cannot start on it - use
+rem                       start-api-server-dspark.bat for speculative
+rem                       decoding, or leave this unset (plain vLLM).
 rem    VLLM_SAMPLING_JSON JSON of server-side default sampling params,
 rem                       default {"temperature":1.0,"top_p":0.95,"top_k":20,
 rem                       "min_p":0.0,"presence_penalty":0.0,
