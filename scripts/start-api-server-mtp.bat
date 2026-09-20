@@ -72,15 +72,6 @@ if not defined VLLM_SAMPLING_JSON set "VLLM_SAMPLING_JSON={"temperature":1.0,"to
 if not defined FULL_MAX_MODEL_LEN set "FULL_MAX_MODEL_LEN=180000"
 if not defined SERVE_PORT set "SERVE_PORT=8192"
 
-rem --- runtime notice: MTP needs the MTP-head checkpoint (the default) ---
-echo.
-echo NOTE: MTP needs the pre-final checkpoint where mtp_num_hidden_layers = 1.
-echo       This launcher defaults to /home/kami/models/Qwen3.8-27B-NVFP4-VLLM.
-echo       Pointing MODEL_DIR at the final build
-echo       /home/kami/models/Qwen3.8-27B-NVFP4-DSpark will fail: that
-echo       checkpoint ships no MTP head at all. See README 4.6.
-echo.
-
 rem --- LAN menu (before the service starts) ---
 rem --lan-enabled is internal: the elevated copy skips the menu.
 if /I "%~1"=="--lan-enabled" (
