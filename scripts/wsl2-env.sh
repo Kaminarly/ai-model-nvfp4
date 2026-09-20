@@ -4,7 +4,7 @@
 # Commands:
 #   prereqs                 confirm Windows 10 + WSL2 Ubuntu + RTX 5090 prerequisites
 #   create [--prefix DIR] [--force] [--dry-run]
-#                           create the isolated venv with CUDA 13 toolkit + vLLM 0.27.1
+#                           create the isolated venv with CUDA 13 toolkit + vLLM 0.29.0
 #   verify  [--prefix DIR]  verify python / nvcc / vLLM versions of the created env
 #   help
 #
@@ -29,7 +29,7 @@ Usage:
 
 Commands:
   prereqs   Verify Windows 10 + WSL2 Ubuntu + RTX 5090 prerequisites.
-  create    Build the isolated runtime: python venv + CUDA 13 toolkit + vLLM 0.27.1.
+  create    Build the isolated runtime: python venv + CUDA 13 toolkit + vLLM 0.29.0.
   verify    Verify installed versions (python, nvcc, vLLM) from the command line.
   help      Show this help.
 

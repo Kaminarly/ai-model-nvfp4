@@ -27,7 +27,7 @@ if [ "${1:-}" = "-m" ]; then
 fi
 if [ "${1:-}" = "-c" ]; then
   case "${2:-}" in
-    *vllm*) printf '%s\n' "${FAKE_VLLM_VERSION:-0.27.1}" ;;
+    *vllm*) printf '%s\n' "${FAKE_VLLM_VERSION:-0.29.0}" ;;
     *torch*) printf '%s\n' "${FAKE_TORCH_VERSION:-2.9.0}" ;;
     *sysconfig*) printf '%s\n' "${FAKE_PY_INCLUDE:-}" ;;
   esac

@@ -87,10 +87,20 @@ lan_hint() {
 # MAX_JOBS=1 (parallel nvcc OOMs the WSL2 RAM cap), and its JIT link step
 # needs -ltvm_ffi from the venv. Issue 04 boots vLLM repeatedly (smoke, ramp,
 # full config) and reuses this per boot.
+#
+# VLLM_WSL2_ENABLE_PIN_MEMORY=1 (vLLM 0.29.0): the default V2 model runner
+# allocates its request-state buffers through cudaHostAlloc (UVA), and vLLM
+# gates that on pinned memory - which it DISABLES by default under WSL2 even on
+# kernels new enough to support it (vllm/platforms/cuda.py
+# is_pin_memory_available). Without this the engine dies at startup in
+# GPUModelRunnerV2 with `RuntimeError: UVA is not available`. Verified on this
+# host (kernel 6.18.33.2-microsoft-standard-WSL2): torch pin_memory works, and
+# the env var flips is_uva_available() False -> True.
 prepare_vllm_env() {
   local venv="$1" cuda_home tvm_ffi_lib
   export HF_HUB_OFFLINE=1
   export TRANSFORMERS_OFFLINE=1
+  export VLLM_WSL2_ENABLE_PIN_MEMORY=1
   cuda_home="$(cuda_home_in_venv "$venv" 2>/dev/null)"
   if [ -n "$cuda_home" ] && [ -x "$cuda_home/bin/nvcc" ]; then
     export CUDA_HOME="$cuda_home"
@@ -117,9 +127,9 @@ prepare_vllm_env() {
 #   VLLM_SAMPLING_JSON a JSON object of default sampling params, e.g.
 #                      '{"temperature":1.0,"top_p":0.95,"top_k":20}' -> emits
 #                      --override-generation-config.<key> <value> per entry so
-#                      every request defaults to these values (vLLM 0.27.1
-#                      reads them via get_diff_sampling_param; requests that
-#                      pass the same field explicitly still override them).
+#                      every request defaults to these values (both 0.27.1 and
+#                      0.29.0 read them via get_diff_sampling_param; requests
+#                      that pass the same field explicitly still override them).
 #   VLLM_EXTRA_ARGS    extra vLLM CLI args, whitespace-separated.
 serve_argv() {
   local venv="$1" model_dir="$2" host="$3" port="$4" name="$5" max_len="$6" max_seqs="$7" util="${8:-}"
@@ -137,10 +147,11 @@ serve_argv() {
   if [ -n "$util" ]; then
     printf '%s\n' "--gpu-memory-utilization" "$util"
   fi
-  # Speculative decoding (e.g. MTP): --spec-method mtp. vLLM 0.27.1
-  # requires an explicit --spec-tokens when the draft config has no n_predict
-  # (MTP bootstraps from the target weights). 3 draft tokens is the chosen
-  # default here.
+  # Speculative decoding (e.g. MTP): --spec-method mtp. --spec-tokens is
+  # always passed explicitly: MTP bootstraps from the target weights and has
+  # no draft n_predict to infer the count from, and 3 draft tokens is the
+  # chosen default here (0.29.0 accepts the same flags; both versions verified
+  # on this host).
   if [ -n "${VLLM_SPEC_METHOD:-}" ]; then
     printf '%s\n' "--spec-method" "$VLLM_SPEC_METHOD"
     printf '%s\n' "--spec-tokens" "3"

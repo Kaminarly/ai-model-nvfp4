@@ -127,7 +127,7 @@ out="$(run_green -- --prefix "$PFX" --model-dir "$MODEL_OK")"; code=$?
 expect_exit 0 "$code" "green preflight exits 0"
 expect_contains "$out" "overall result: OK" "summary OK"
 expect_contains "$out" "preflight result: READY" "single READY boundary"
-expect_contains "$out" "vllm 0.27.1" "vLLM version checked"
+expect_contains "$out" "vllm 0.29.0" "vLLM version checked"
 expect_contains "$out" "release 13" "nvcc release 13 checked"
 expect_contains "$out" "required files present" "model file list complete"
 expect_contains "$out" "index lists 3 shard(s), all present" "shard index consistent"

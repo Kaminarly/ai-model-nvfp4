@@ -104,7 +104,7 @@ out="$(run_green -- create --dry-run --prefix "$TMP_ROOT/dry")"; code=$?
 expect_exit 0 "$code" "create dry-run exits 0"
 expect_contains "$out" "python3 -m venv" "plans venv creation"
 expect_contains "$out" "cuda-toolkit[nvcc]==13.3.1" "plans CUDA 13 toolkit install"
-expect_contains "$out" "vllm==0.27.1" "plans vLLM 0.27.1 install"
+expect_contains "$out" "vllm==0.29.0" "plans vLLM 0.29.0 install"
 expect_not_contains "$out" "snapshot_download" "no HF download"
 expect_not_contains "$out" "huggingface-cli" "no HF CLI"
 
@@ -118,9 +118,9 @@ P1="$TMP_ROOT/full"
 out="$(run_green FAKE_NVCC_SRC="$FIXTURES/venv/bin/nvcc" FAKE_PIP_LOG="$TMP_ROOT/pip.log" -- create --prefix "$P1")"; code=$?
 expect_exit 0 "$code" "create full exits 0"
 expect_contains "$out" "runtime created at" "reports creation"
-expect_contains "$(cat "$P1/env-info.txt" 2>/dev/null)" "vllm==0.27.1" "env record written"
+expect_contains "$(cat "$P1/env-info.txt" 2>/dev/null)" "vllm==0.29.0" "env record written"
 expect_contains "$(cat "$TMP_ROOT/pip.log" 2>/dev/null)" "cuda-toolkit[nvcc]==13.3.1" "toolkit install recorded"
-expect_contains "$(cat "$TMP_ROOT/pip.log" 2>/dev/null)" "vllm==0.27.1" "vllm install recorded"
+expect_contains "$(cat "$TMP_ROOT/pip.log" 2>/dev/null)" "vllm==0.29.0" "vllm install recorded"
 
 section "create: refuses existing venv without --force"
 out="$(run_green -- create --prefix "$P1")"; code=$?
@@ -133,14 +133,14 @@ expect_contains "$out" "--force" "suggests --force"
 section "verify: green env"
 out="$(run_green FAKE_NVCC_SRC="$FIXTURES/venv/bin/nvcc" -- verify --prefix "$P1")"; code=$?
 expect_exit 0 "$code" "verify green exits 0"
-expect_contains "$out" "vllm 0.27.1" "reports vLLM version"
+expect_contains "$out" "vllm 0.29.0" "reports vLLM version"
 expect_contains "$out" "release 13" "reports CUDA 13 nvcc"
 expect_contains "$out" "overall result: OK" "verify summary OK"
 
 section "verify: wrong vLLM version"
 out="$(run_green FAKE_NVCC_SRC="$FIXTURES/venv/bin/nvcc" FAKE_VLLM_VERSION=0.28.0 -- verify --prefix "$P1")"; code=$?
 expect_exit 1 "$code" "verify bad vllm exits 1"
-expect_contains "$out" "pip install vllm==0.27.1" "suggests exact pip fix"
+expect_contains "$out" "pip install vllm==0.29.0" "suggests exact pip fix"
 
 section "verify: wrong CUDA release"
 out="$(run_green FAKE_NVCC_SRC="$FIXTURES/venv/bin/nvcc" FAKE_CUDA_RELEASE=12.8 -- verify --prefix "$P1")"; code=$?

@@ -11,7 +11,7 @@
 一句话：**把一个大模型跑在你自己的显卡上，并给它一个标准的 API 服务外壳。**
 
 - **模型**：Qwen3.8-27B（约 270 亿参数），使用发布者提供的**原生 NVFP4 量化权重**。NVFP4 是 RTX 50 系（Blackwell）显卡的原生格式，速度和显存占用最优；我们直接加载原版 safetensors 文件，**不做任何格式转换、不重新量化**。
-- **引擎**：vLLM 0.27.1，业界主流的推理服务框架，提供 OpenAI 兼容接口。
+- **引擎**：vLLM 0.29.0，业界主流的推理服务框架，提供 OpenAI 兼容接口。
 - **上下文**：单个对话最多 **200000 个 token（200k）**——这是你这台机器实测验证过的边界。
 - **安全**：服务**只监听本机**（127.0.0.1），不向局域网或互联网开放端口；启动强制离线模式，绝不联网下载模型或上传你的数据。
 
@@ -29,7 +29,7 @@
 | WSL2 + Ubuntu | Windows 内运行的 Linux 子系统，模型服务跑在里面 |
 | RTX 5090 32GB | 显卡，Blackwell 架构；驱动 610.88（已实测） |
 | CUDA 13.3 | GPU 编译工具链，装在独立环境里，**不污染系统** |
-| vLLM 0.27.1 | 推理引擎，服务本体 |
+| vLLM 0.29.0 | 推理引擎，服务本体 |
 | Python 3.14 | 独立虚拟环境（venv），与系统 Python 隔离 |
 | ModelOpt NVFP4 | 模型量化格式；KV 缓存用 FP8 |
 | OpenAI 兼容 API | 服务对外的接口格式 |
@@ -53,7 +53,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh verify    # 3. �
 | 子命令 | 干什么 | 什么时候用 |
 | --- | --- | --- |
 | `prereqs` | 检查 Windows 版本、WSL2、GPU、驱动等前提，不满足会告诉你**缺什么、怎么修** | 第一次 / 环境怀疑有问题时 |
-| `create` | 创建独立 Python 环境，安装 CUDA 13.3 工具链和 vLLM 0.27.1 | 第一次（约需 10+ 分钟，视网速） |
+| `create` | 创建独立 Python 环境，安装 CUDA 13.3 工具链和 vLLM 0.29.0 | 第一次（约需 10+ 分钟，视网速） |
 | `verify` | 从命令行验证 python / nvcc / vLLM 版本和 GPU 可见性 | 装完、或升级后 |
 
 > PowerShell 里的写法：`wsl -d Ubuntu -- bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh prereqs`（后面两步同理）。
@@ -180,7 +180,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
 | `hf_quant_config.json` | 含 `mtp*` / `mtp.layers.0*` 两条排除规则（MTP 层保持 bf16，不进 NVFP4） | 全文不含 `mtp` |
 | MTP 可用性 | **可用**：`--spec-method mtp` 能建出草稿头并加载到权重 | **不可用**：`qwen3_5_mtp.py` 按 `mtp_num_hidden_layers` 建出 **0 层空列表**，`load_weights` 收不到任何 `mtp.` 权重 |
 
-**MTP 是什么**：它是模型自带的"多 token 预测"草稿头——推理时每步先草拟接下来几个 token、再一起验证，接受率高时一次前向就能多生成几个 token，**加速的是输出（decoding）阶段**，长输出收益明显。vLLM 0.27.1 原生支持 `--spec-method mtp`，**不需要额外草稿模型**。两份权重的第 1 个分片是**同一个 HF 对象**（本机用硬链接共享同一 inode，只占一份盘），差别只在第 2、3 分片与 MTP 头的有无——模型卡说明这次改动"不触碰任何被计算的值"，即计算语义不变。
+**MTP 是什么**：它是模型自带的"多 token 预测"草稿头——推理时每步先草拟接下来几个 token、再一起验证，接受率高时一次前向就能多生成几个 token，**加速的是输出（decoding）阶段**，长输出收益明显。vLLM 0.29.0 原生支持 `--spec-method mtp`，**不需要额外草稿模型**。两份权重的第 1 个分片是**同一个 HF 对象**（本机用硬链接共享同一 inode，只占一份盘），差别只在第 2、3 分片与 MTP 头的有无——模型卡说明这次改动"不触碰任何被计算的值"，即计算语义不变。
 
 **最简单的用法：双击 `scripts/start-api-server-mtp.bat`**。它默认就指向 `-VLLM`，与 `start-api-server-vllm.bat` 唯一的区别是开启了 MTP 并把上下文从 200000 降到 180000（MTP 多占一些显存，留出余量），端口同为 8192。启动前同样会问局域网访问（`1` 开启 / `2` 关闭 / `0` 退出，默认关闭）。它内部通过 `direct.sh` 启动，vLLM 参数自动带上：
 
@@ -188,7 +188,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/fullcontext.sh start \
 --spec-method mtp --spec-tokens 3
 ```
 
-（`--spec-tokens 3` 是 MTP 的草稿 token 数；vLLM 0.27.1 对 MTP 必须显式给这个值，否则启动报 `num_speculative_tokens must be provided`。）
+（`--spec-tokens 3` 是 MTP 的草稿 token 数；MTP 草稿头从目标权重初始化、没有可推断的 `n_predict`，所以必须显式给这个值，否则启动报 `num_speculative_tokens must be provided`——0.27.1 与 0.29.0 行为一致，`serve-lib.sh` 一律显式传。）
 
 **手动方式**：在 `direct.sh` / `fullcontext.sh` / `serve.sh` 前设环境变量即可，无需改脚本（`--model-dir` 记得指向 `-VLLM`）：
 
@@ -200,7 +200,7 @@ VLLM_SPEC_METHOD=mtp bash scripts/direct.sh start --model-dir /home/kami/models/
 
 注意事项：
 - **显存**：RTX 5090 32GB 下，NVFP4 权重约 18.8GB + FP8 KV 缓存（比 bf16 减半，这是长上下文能装下的关键）+ 前缀缓存 + MTP 层（bf16），整体放得下但余量不大。开启后若 OOM，把 `FULL_GPU_MEM_UTIL` 从 0.90 降到 0.85 再试，或关掉 MTP。
-- **MTP 与 CUDA graph**：vLLM 0.27.1 在 spec-decode + FlashInfer 下会把 CUDA graph 降级为 PIECEWISE 模式（日志会有一条警告），这是正常降级，不影响功能。
+- **MTP 与 CUDA graph**：vLLM 在 spec-decode + FlashInfer 下会把 CUDA graph 降级为 PIECEWISE 模式（日志会有一条警告），这是正常降级，不影响功能。
 - **`min_p` / `logit_bias` 与推测解码**：vLLM 会警告 `min_p and logit_bias parameters won't work with speculative decoding`，即 MTP 开启时服务端默认的 `min_p` 不生效（默认 0.0 本就等于不启用，无实际影响）。
 - **首次启动遇到 FlashInfer JIT 内核编译时**，用 bat 脚本启动最省心——它自带完整环境（`CUDA_HOME`、`MAX_JOBS=1` 等），避免手动启动漏掉环境变量。
 
@@ -365,7 +365,7 @@ print(resp.choices[0].message.content)
 
 ### 5.4 调整采样参数（温度 / top-p / top-k 等）
 
-这些参数**每次请求单独传**，不用重启服务、不用改启动脚本；不同请求可以给不同值。vLLM 0.27.1 的 `/v1/chat/completions` 接口原生支持：
+这些参数**每次请求单独传**，不用重启服务、不用改启动脚本；不同请求可以给不同值。vLLM 0.29.0 的 `/v1/chat/completions` 接口原生支持：
 
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -399,7 +399,7 @@ resp = client.chat.completions.create(
 
 要点：
 - 不传就用默认值（temperature=1.0 / top_p=1.0 / 无 top-k），输出偏"发散"；做固定任务建议 temperature 0.6~0.8、top_p 0.9。
-- vLLM 0.27.1 **没有服务端默认采样参数的启动项**，想在网关（OpenWebUI / OneAPI 等）统一默认值，就在网关里配。
+- vLLM 0.29.0 **没有服务端默认采样参数的启动项**，想在网关（OpenWebUI / OneAPI 等）统一默认值，就在网关里配。
 - 这是思考类模型：temperature 同时作用于思考 token 和正文，调低会让思考也收敛；`reasoning_effort` 控思考深度、`temperature` 控随机性，两者正交。
 
 ### 5.5 上下文上限：max-input 与 max-output
@@ -424,7 +424,7 @@ resp = client.chat.completions.create(
 5. **保持配置一致**：本机验证过的组合是 `0.90 / 200000 / 16`。调大 `FULL_GPU_MEM_UTIL` 或上下文到 262144 前，确认显存余量（参考第 7 节问题 1）。
 6. **默认只在本机**：默认绑定 127.0.0.1，不向局域网或互联网开放端口。想开放局域网访问，在三个启动器的启动前菜单选 `1`（或用 `start-api-server-lan.bat` / `direct.sh --lan`）并配合 Windows 端口转发 + 防火墙，详见 5.0 节；**该模式没有鉴权，请只在可信网络使用**。
 7. **永远离线**：脚本强制 `HF_HUB_OFFLINE=1` / `TRANSFORMERS_OFFLINE=1`，只读你指定的本地模型目录。如果你的目录里没有模型，报错会提示你，而不是偷偷去下载。
-8. **改版本要谨慎**：环境版本全部钉死（vLLM 0.27.1 + CUDA 13 + Python 3.14），这是模型卡验证过的组合。升级走 `wsl2-env.sh create --force`（会用环境变量指定的新版本重建），不建议手动 `pip install` 乱改。
+8. **改版本要谨慎**：环境版本全部钉死（vLLM 0.29.0 + CUDA 13 + Python 3.14），这是模型卡验证过的组合。升级走 `wsl2-env.sh create --force`（会用环境变量指定的新版本重建），不建议手动 `pip install` 乱改。**注意 0.29.0 起默认启用的 V2 model runner 需要 UVA（固定内存）**，而 vLLM 在 WSL2 上默认关闭固定内存——`scripts/lib/serve-lib.sh` 的 `prepare_vllm_env` 已统一导出 `VLLM_WSL2_ENABLE_PIN_MEMORY=1`，所以 `serve.sh` / `direct.sh` / `fullcontext.sh` 和所有 bat 启动器都能正常起来；手动在 venv 里跑 `vllm serve` 时记得自己带上这个变量，否则会在启动时报 `RuntimeError: UVA is not available`。
 9. **测试**：项目自带五套自动化测试（`bash tests/run-tests.sh`、`tests/preflight-tests.sh`、`tests/serve-tests.sh`、`tests/fullcontext-tests.sh`、`tests/sparkinfer-tests.sh`），用假工具模拟环境，可在没有 WSL/GPU 的机器上跑，改代码后跑一遍防回归。
 
 ---
@@ -487,7 +487,7 @@ bash /mnt/d/Code/MJ-Project/ai-model-nvfp4/scripts/wsl2-env.sh create --prefix ~
 
 **Q13：模型把思考过程直接当正文输出了（没有 `<think>` 标签包裹）？**
 这是 vLLM 服务端没启用 Qwen3 推理解析器导致的，已修复（2026-08-19）。原因：这个模型的 chat template 默认开启思考（`enable_thinking=true`），vLLM 只有在带 `--reasoning-parser qwen3` 启动时才会在生成 prompt 里注入 `<think>` 起始标签，引导模型按"思考 + `</think>` + 正文"输出，并把思考提取到独立字段；没有这个参数时，模型会把思考过程当成正文直接输出。
-修复：启动参数已在 `scripts/lib/serve-lib.sh` 统一加上 `--reasoning-parser qwen3`（`serve.sh` / `direct.sh` / `fullcontext.sh` / `start-api-server-vllm.bat` 都生效），重启服务即可。修复后思考内容在响应的 `reasoning` 字段（这是 vLLM 0.27.1 的字段名；OpenAI 标准叫 `reasoning_content`），正文在 `content`，不再混在一起。如果客户端界面仍不显示思考块，多半是客户端只认 `reasoning_content` 字段名，可联系适配。
+修复：启动参数已在 `scripts/lib/serve-lib.sh` 统一加上 `--reasoning-parser qwen3`（`serve.sh` / `direct.sh` / `fullcontext.sh` / `start-api-server-vllm.bat` 都生效），重启服务即可。修复后思考内容在响应的 `reasoning` 字段（这是 vLLM 的字段名，0.27.1 与 0.29.0 实测一致；OpenAI 标准叫 `reasoning_content`），正文在 `content`，不再混在一起。如果客户端界面仍不显示思考块，多半是客户端只认 `reasoning_content` 字段名，可联系适配。
 
 **Q14：双击 `scripts` 里的 `start-api-server*.bat` 窗口一闪而过 / 直接闪退？**
 已修复（2026-08-21）。闪退是四个问题叠加造成的，每一个都能让窗口在出现后立刻关闭：

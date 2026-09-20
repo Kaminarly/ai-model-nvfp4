@@ -10,14 +10,17 @@ set -u
 # ---------------------------------------------------------------------------
 # Configuration (spec-fixed defaults; override via environment)
 # ---------------------------------------------------------------------------
-VLLM_VERSION="${VLLM_VERSION:-0.27.1}"
+VLLM_VERSION="${VLLM_VERSION:-0.29.0}"
 CUDA_MAJOR_VERSION="${CUDA_MAJOR_VERSION:-13}"
 # CUDA 13 toolkit: NVIDIA's official PyPI meta-package 'cuda-toolkit' (the old
 # 'nvidia-cuda-toolkit-cu13' name does not exist on PyPI). The [nvcc] extra pulls
 # in exactly the compiler chain (nvcc + crt + runtime + nvvm) used for vLLM's
-# first-time Blackwell FP4 kernel compilation. vLLM 0.27.1 has no [cuda-13]
-# extra: its CUDA 13 stack (torch 2.13, cutlass-dsl[cu13], ...) is bundled in
-# the base wheel, so VLLM_PIP_SPEC is a plain pin.
+# first-time Blackwell FP4 kernel compilation. vLLM 0.29.0 has no [cuda-13]
+# extra: its CUDA 13 stack (torch 2.13, cutlass-dsl 4.6.2, ...) is bundled in
+# the base wheel, so VLLM_PIP_SPEC is a plain pin. Its dependency metadata asks
+# for nvidia-cuda-{nvrtc,runtime,cupti}/nvtx 13.0.x, which the 13.3.x re-pin
+# below deliberately overrides (FlashInfer JIT needs matching CCCL headers);
+# `pip check` reports no conflict for that override.
 CUDA_TOOLKIT_PIP_SPEC="${CUDA_TOOLKIT_PIP_SPEC:-cuda-toolkit[nvcc]==13.3.1}"
 VLLM_PIP_SPEC="${VLLM_PIP_SPEC:-vllm==${VLLM_VERSION}}"
 REQUIRED_GPU_NAME="${REQUIRED_GPU_NAME:-RTX 5090}"
